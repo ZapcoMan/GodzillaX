@@ -155,7 +155,9 @@ public class StealthGcm implements Cryption {
       byte[] padded = new byte[prefixLen + 4 + data.length + suffixLen];
       
       // 前缀: 随机数据
-      this.random.nextBytes(padded, 0, prefixLen);
+      byte[] prefix = new byte[prefixLen];
+      this.random.nextBytes(prefix);
+      System.arraycopy(prefix, 0, padded, 0, prefixLen);
       
       // 标记: 4字节表示真实数据长度
       int realLen = data.length;
@@ -168,7 +170,9 @@ public class StealthGcm implements Cryption {
       System.arraycopy(data, 0, padded, prefixLen + 4, data.length);
       
       // 后缀: 随机数据
-      this.random.nextBytes(padded, prefixLen + 4 + data.length, suffixLen);
+      byte[] suffix = new byte[suffixLen];
+      this.random.nextBytes(suffix);
+      System.arraycopy(suffix, 0, padded, prefixLen + 4 + data.length, suffixLen);
       
       return padded;
    }
