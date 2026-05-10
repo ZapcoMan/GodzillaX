@@ -518,8 +518,19 @@ public class ApplicationContext {
          System.setProperty("apple.laf.useScreenMenuBar", "true");
       }
 
+      // 启用现代化UI特性
       UIManager.put("Table.showHorizontalLines", true);
       UIManager.put("Table.showVerticalLines", true);
+      
+      // 设置圆角效果
+      UIManager.put("Component.arc", 8);
+      UIManager.put("Button.arc", 8);
+      UIManager.put("TextField.arc", 8);
+      UIManager.put("ComboBox.arc", 8);
+      
+      // 设置阴影效果
+      UIManager.put("Popup.dropShadowBorderWidth", 3);
+      
       JFrame.setDefaultLookAndFeelDecorated(true);
       JDialog.setDefaultLookAndFeelDecorated(true);
       String resourceNameString = Db.getSetingValue("ui-resourceName");

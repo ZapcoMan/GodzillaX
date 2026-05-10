@@ -5,6 +5,7 @@ import core.ui.component.dialog.GFileChooser;
 import core.ui.component.dialog.GOptionPane;
 import core.ui.component.listener.ActionDblClick;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -50,7 +52,29 @@ public class DataView extends JTable {
       this.addMouseListener(this.rightClickEvent);
       this.setSelectionMode(0);
       this.setAutoCreateRowSorter(true);
-      this.setRowHeight(25);
+      this.setRowHeight(28);
+      
+      // 优化表格样式
+      this.setShowGrid(true);
+      this.setGridColor(new java.awt.Color(220, 220, 220));
+      this.setIntercellSpacing(new java.awt.Dimension(1, 1));
+      
+      // 优化表头
+      JTableHeader header = this.getTableHeader();
+      header.setFont(new Font("Microsoft YaHei", Font.BOLD, 13));
+      header.setPreferredSize(new java.awt.Dimension(header.getPreferredSize().width, 35));
+      
+      // 设置默认单元格渲染器
+      this.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (!isSelected) {
+               setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5));
+            }
+            return c;
+         }
+      });
+      
       this.rightClickMenu = new JPopupMenu();
       JMenuItem copyselectItem = new JMenuItem("复制选中");
       copyselectItem.setActionCommand("copySelected");
@@ -335,8 +359,14 @@ public class DataView extends JTable {
    public JTableHeader getTableHeader() {
       JTableHeader tableHeader = super.getTableHeader();
       tableHeader.setReorderingAllowed(false);
-      DefaultTableCellRenderer hr = (DefaultTableCellRenderer)tableHeader.getDefaultRenderer();
-      hr.setHorizontalAlignment(0);
+      
+      // 安全地设置表头渲染器对齐方式
+      TableCellRenderer renderer = tableHeader.getDefaultRenderer();
+      if (renderer instanceof DefaultTableCellRenderer) {
+         DefaultTableCellRenderer hr = (DefaultTableCellRenderer)renderer;
+         hr.setHorizontalAlignment(0);
+      }
+      
       return tableHeader;
    }
 
@@ -345,9 +375,12 @@ public class DataView extends JTable {
    }
 
    public TableCellRenderer getDefaultRenderer(Class<?> columnClass) {
-      DefaultTableCellRenderer cr = (DefaultTableCellRenderer)super.getDefaultRenderer(columnClass);
-      cr.setHorizontalAlignment(0);
-      return cr;
+      TableCellRenderer renderer = super.getDefaultRenderer(columnClass);
+      if (renderer instanceof DefaultTableCellRenderer) {
+         DefaultTableCellRenderer cr = (DefaultTableCellRenderer)renderer;
+         cr.setHorizontalAlignment(0);
+      }
+      return renderer;
    }
 
    public boolean isCellEditable(int paramInt1, int paramInt2) {

@@ -14,7 +14,10 @@ import core.ui.component.dialog.PluginManage;
 import core.ui.component.frame.LiveScan;
 import core.ui.component.frame.ShellSetting;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.PopupMenu;
@@ -29,11 +32,13 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Vector;
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -74,23 +79,44 @@ public class MainActivity extends JFrame {
       this.setTitle(EasyI18N.getI18nString("哥斯拉   V%s by: BeichenDream Github:https://github.com/BeichenDream/Godzilla", "4.01"));
       this.setLayout(new BorderLayout(2, 2));
       this.currentGroup = "/";
+      
+      // 优化状态栏
       this.statusLabel = new JLabel("status");
+      this.statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+      this.statusLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 13));
+      
       Vector<Vector<String>> rows = Db.getAllShell();
       this.columnVector = (Vector)rows.get(0);
       rows.remove(0);
       this.shellView = new DataView((Vector)null, this.columnVector, -1, -1);
       this.refreshShellView();
       this.shellView.setSelectionMode(2);
+      
+      // 优化分割面板
       this.splitPane = new JSplitPane(1);
+      this.splitPane.setDividerSize(8);
+      this.splitPane.setContinuousLayout(true);
+      
       this.shellGroupTree = new ShellGroup();
-      this.splitPane.setLeftComponent(new JScrollPane(this.shellGroupTree));
-      this.splitPane.setRightComponent(this.shellViewScrollPane = new JScrollPane(this.shellView));
+      JScrollPane leftScrollPane = new JScrollPane(this.shellGroupTree);
+      leftScrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+      
+      this.shellViewScrollPane = new JScrollPane(this.shellView);
+      this.shellViewScrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+      
+      this.splitPane.setLeftComponent(leftScrollPane);
+      this.splitPane.setRightComponent(this.shellViewScrollPane);
+      this.splitPane.setDividerLocation(250);
+      
       this.add(this.splitPane);
       this.add(this.statusLabel, "South");
+      
+      // 优化菜单栏
       this.targetMenu = new JMenu("目标");
       JMenuItem addShellMenuItem = new JMenuItem("添加");
       addShellMenuItem.setActionCommand("addShell");
       this.targetMenu.add(addShellMenuItem);
+      
       this.attackMenu = new JMenu("管理");
       JMenuItem shellLiveScanMenuItem = new JMenuItem("存活扫描");
       shellLiveScanMenuItem.setActionCommand("shellLiveScan");
@@ -98,6 +124,7 @@ public class MainActivity extends JFrame {
       generateShellMenuItem.setActionCommand("generateShell");
       this.attackMenu.add(generateShellMenuItem);
       this.attackMenu.add(shellLiveScanMenuItem);
+      
       this.configMenu = new JMenu("配置");
       JMenuItem pluginConfigMenuItem = new JMenuItem("插件配置");
       pluginConfigMenuItem.setActionCommand("pluginConfig");
@@ -105,6 +132,7 @@ public class MainActivity extends JFrame {
       appConfigMenuItem.setActionCommand("appConfig");
       this.configMenu.add(appConfigMenuItem);
       this.configMenu.add(pluginConfigMenuItem);
+      
       this.aboutMenu = new JMenu("关于");
       JMenuItem aboutMenuItem = new JMenuItem("关于");
       aboutMenuItem.setActionCommand("about");
@@ -123,6 +151,8 @@ public class MainActivity extends JFrame {
       menuBar.add(this.aboutMenu);
       menuBar.add(pluginMenu);
       this.setJMenuBar(menuBar);
+      
+      // 优化右键菜单
       JMenuItem copyselectItem = new JMenuItem("复制选中");
       copyselectItem.setActionCommand("copyShellViewSelected");
       JMenuItem interactMenuItem = new JMenuItem("进入");
@@ -135,9 +165,12 @@ public class MainActivity extends JFrame {
       editShell.setActionCommand("editShell");
       JMenuItem refreshShell = new JMenuItem("刷新");
       refreshShell.setActionCommand("refreshShellView");
+      
       shellViewPopupMenu.add(interactMenuItem);
       shellViewPopupMenu.add(interactCacheMenuItem);
+      shellViewPopupMenu.addSeparator();
       shellViewPopupMenu.add(copyselectItem);
+      shellViewPopupMenu.addSeparator();
       shellViewPopupMenu.add(removeShell);
       shellViewPopupMenu.add(editShell);
       shellViewPopupMenu.add(refreshShell);
@@ -148,6 +181,9 @@ public class MainActivity extends JFrame {
       this.setLocationRelativeTo((Component)null);
       this.setVisible(true);
       this.setDefaultCloseOperation(3);
+      
+      // 设置窗口最小尺寸
+      this.setMinimumSize(new Dimension(1000, 500));
    }
 
    private void addEasterEgg() {
