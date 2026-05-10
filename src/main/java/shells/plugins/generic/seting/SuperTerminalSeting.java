@@ -53,13 +53,29 @@ public class SuperTerminalSeting extends JPanel {
       splitPane.setTopComponent(topPanel);
       splitPane.setBottomComponent(this.jediTerminal);
       ItemListener listener = (e) -> {
-         this.jediTerminal = new JediTermWidget(new TerminalSettingsProvider(this.terminalStyleComboBox.getSelectedItem().toString()) {
+         // 添加 null 检查,防止空指针异常
+         Object terminalStyleObj = this.terminalStyleComboBox.getSelectedItem();
+         Object fontNameObj = SuperTerminalSeting.this.fontCombobox.getSelectedItem();
+         Object fontTypeObj = SuperTerminalSeting.this.fontTypeComboBox.getSelectedItem();
+         Object fontSizeObj = SuperTerminalSeting.this.fontSizeCombobox.getSelectedItem();
+         
+         // 如果任何选项为空,则不更新
+         if (terminalStyleObj == null || fontNameObj == null || fontTypeObj == null || fontSizeObj == null) {
+            return;
+         }
+         
+         String terminalStyle = terminalStyleObj.toString();
+         String fontName = fontNameObj.toString();
+         String fontType = fontTypeObj.toString();
+         int fontSize = Integer.parseInt(fontSizeObj.toString());
+         
+         this.jediTerminal = new JediTermWidget(new TerminalSettingsProvider(terminalStyle) {
             public Font getTerminalFont() {
-               return new Font(SuperTerminalSeting.this.fontCombobox.getSelectedItem().toString(), UiFunction.getFontType(SuperTerminalSeting.this.fontTypeComboBox.getSelectedItem().toString()), (int)this.getTerminalFontSize());
+               return new Font(fontName, UiFunction.getFontType(fontType), (int)this.getTerminalFontSize());
             }
 
             public float getTerminalFontSize() {
-               return (float)Integer.parseInt(SuperTerminalSeting.this.fontSizeCombobox.getSelectedItem().toString());
+               return (float)fontSize;
             }
          });
 
@@ -81,10 +97,22 @@ public class SuperTerminalSeting extends JPanel {
    }
 
    private void saveButtonClick(ActionEvent actionEvent) {
-      String fontName = this.fontCombobox.getSelectedItem().toString();
-      String fontType = this.fontTypeComboBox.getSelectedItem().toString();
-      int fontSize = Integer.parseInt(this.fontSizeCombobox.getSelectedItem().toString());
-      String terminalStyle = this.terminalStyleComboBox.getSelectedItem().toString();
+      // 添加 null 检查
+      Object fontNameObj = this.fontCombobox.getSelectedItem();
+      Object fontTypeObj = this.fontTypeComboBox.getSelectedItem();
+      Object fontSizeObj = this.fontSizeCombobox.getSelectedItem();
+      Object terminalStyleObj = this.terminalStyleComboBox.getSelectedItem();
+      
+      if (fontNameObj == null || fontTypeObj == null || fontSizeObj == null || terminalStyleObj == null) {
+         GOptionPane.showMessageDialog(this, "请选择所有选项!", "提示", 2);
+         return;
+      }
+      
+      String fontName = fontNameObj.toString();
+      String fontType = fontTypeObj.toString();
+      int fontSize = Integer.parseInt(fontSizeObj.toString());
+      String terminalStyle = terminalStyleObj.toString();
+      
       if (Db.updateSetingKV("Terminal-FontName", fontName) && Db.updateSetingKV("Terminal-FontType", fontType) && Db.updateSetingKV("Terminal-FontSize", String.valueOf(fontSize)) && Db.updateSetingKV("Terminal-FontStyle", terminalStyle)) {
          GOptionPane.showMessageDialog(this, "修改成功!", "提示", 1);
       } else {
