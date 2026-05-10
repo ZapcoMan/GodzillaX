@@ -20,6 +20,9 @@ import core.ui.component.frame.LiveScan;
 import core.ui.component.frame.ShellSetting;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.PopupMenu;
@@ -34,14 +37,8 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Vector;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
+import javax.swing.*;
+
 import util.Log;
 import util.automaticBindClick;
 import util.functions;
@@ -62,6 +59,8 @@ public class MainActivity extends JFrame {
     private ShellGroup shellGroupTree;
     private String currentGroup;
     private JLabel statusLabel;
+    private JToolBar toolBar;
+    private JPanel statusBar;
 
     private static void initStatic() {
         menuBar = new JMenuBar();
@@ -79,40 +78,59 @@ public class MainActivity extends JFrame {
         this.setTitle(EasyI18N.getI18nString("哥斯拉   V%s by: BeichenDream Github:https://github.com/BeichenDream/Godzilla", new Object[]{"4.01"}));
         this.setLayout(new BorderLayout(2, 2));
         this.currentGroup = "/";
-        this.statusLabel = new JLabel("status");
+        
+        // 创建状态栏
+        this.createStatusBar();
+        
         Vector<Vector<String>> rows = Db.getAllShell();
         this.columnVector = (Vector)rows.get(0);
         rows.remove(0);
         this.shellView = new DataView((Vector)null, this.columnVector, -1, -1);
         this.refreshShellView();
         this.shellView.setSelectionMode(2);
+        
+        // 美化表格
+        this.shellView.setRowHeight(25);
+        this.shellView.getTableHeader().setPreferredSize(new Dimension(this.shellView.getTableHeader().getWidth(), 30));
+        this.shellView.getTableHeader().setFont(new Font("微软雅黑", Font.BOLD, 13));
+        this.shellView.setFont(new Font("微软雅黑", Font.PLAIN, 12));
+        
         this.splitPane = new JSplitPane(1);
+        this.splitPane.setDividerSize(3);
+        this.splitPane.setContinuousLayout(true);
         this.shellGroupTree = new ShellGroup();
         this.splitPane.setLeftComponent(new JScrollPane(this.shellGroupTree));
         this.splitPane.setRightComponent(this.shellViewScrollPane = new JScrollPane(this.shellView));
-        this.add(this.splitPane);
-        this.add(this.statusLabel, "South");
+        this.splitPane.setDividerLocation(250);
+        
+        // 创建工具栏
+        this.createToolBar();
+        
+        // 绑定工具栏按钮事件
+        automaticBindClick.bindJButtonClick(this.toolBar, this);
+        
+        this.add(this.toolBar, "North");
+        this.add(this.splitPane, "Center");
+        this.add(this.statusBar, "South");
         this.targetMenu = new JMenu("目标");
-        JMenuItem addShellMenuItem = new JMenuItem("添加");
-        addShellMenuItem.setActionCommand("addShell");
+        this.targetMenu.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        JMenuItem addShellMenuItem = this.createMenuItem("添加", "addShell");
         this.targetMenu.add(addShellMenuItem);
         this.attackMenu = new JMenu("管理");
-        JMenuItem shellLiveScanMenuItem = new JMenuItem("存活扫描");
-        shellLiveScanMenuItem.setActionCommand("shellLiveScan");
-        JMenuItem generateShellMenuItem = new JMenuItem("生成");
-        generateShellMenuItem.setActionCommand("generateShell");
+        this.attackMenu.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        JMenuItem generateShellMenuItem = this.createMenuItem("生成", "generateShell");
+        JMenuItem shellLiveScanMenuItem = this.createMenuItem("存活扫描", "shellLiveScan");
         this.attackMenu.add(generateShellMenuItem);
         this.attackMenu.add(shellLiveScanMenuItem);
         this.configMenu = new JMenu("配置");
-        JMenuItem pluginConfigMenuItem = new JMenuItem("插件配置");
-        pluginConfigMenuItem.setActionCommand("pluginConfig");
-        JMenuItem appConfigMenuItem = new JMenuItem("程序配置");
-        appConfigMenuItem.setActionCommand("appConfig");
+        this.configMenu.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        JMenuItem appConfigMenuItem = this.createMenuItem("程序配置", "appConfig");
+        JMenuItem pluginConfigMenuItem = this.createMenuItem("插件配置", "pluginConfig");
         this.configMenu.add(appConfigMenuItem);
         this.configMenu.add(pluginConfigMenuItem);
         this.aboutMenu = new JMenu("关于");
-        JMenuItem aboutMenuItem = new JMenuItem("关于");
-        aboutMenuItem.setActionCommand("about");
+        this.aboutMenu.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        JMenuItem aboutMenuItem = this.createMenuItem("关于", "about");
         this.aboutMenu.add(aboutMenuItem);
         automaticBindClick.bindMenuItemClick(this.targetMenu, (Map)null, this);
         automaticBindClick.bindMenuItemClick(this.attackMenu, (Map)null, this);
@@ -127,25 +145,25 @@ public class MainActivity extends JFrame {
         menuBar.add(this.configMenu);
         menuBar.add(this.aboutMenu);
         menuBar.add(pluginMenu);
+        menuBar.setFont(new Font("微软雅黑", Font.PLAIN, 13));
         this.setJMenuBar(menuBar);
-        JMenuItem copyselectItem = new JMenuItem("复制选中");
-        copyselectItem.setActionCommand("copyShellViewSelected");
-        JMenuItem interactMenuItem = new JMenuItem("进入");
-        interactMenuItem.setActionCommand("interact");
-        JMenuItem interactCacheMenuItem = new JMenuItem("进入缓存");
-        interactCacheMenuItem.setActionCommand("interactCache");
-        JMenuItem removeShell = new JMenuItem("移除");
-        removeShell.setActionCommand("removeShell");
-        JMenuItem editShell = new JMenuItem("编辑");
-        editShell.setActionCommand("editShell");
-        JMenuItem refreshShell = new JMenuItem("刷新");
-        refreshShell.setActionCommand("refreshShellView");
+        // 创建右键菜单
+        JMenuItem interactMenuItem = this.createMenuItem("进入", "interact");
+        JMenuItem interactCacheMenuItem = this.createMenuItem("进入缓存", "interactCache");
         shellViewPopupMenu.add(interactMenuItem);
         shellViewPopupMenu.add(interactCacheMenuItem);
+        shellViewPopupMenu.addSeparator();
+        
+        JMenuItem copyselectItem = this.createMenuItem("复制选中", "copyShellViewSelected");
+        JMenuItem editShell = this.createMenuItem("编辑", "editShell");
         shellViewPopupMenu.add(copyselectItem);
-        shellViewPopupMenu.add(removeShell);
         shellViewPopupMenu.add(editShell);
+        shellViewPopupMenu.addSeparator();
+        
+        JMenuItem refreshShell = this.createMenuItem("刷新", "refreshShellView");
+        JMenuItem removeShell = this.createMenuItem("移除", "removeShell");
         shellViewPopupMenu.add(refreshShell);
+        shellViewPopupMenu.add(removeShell);
         this.shellView.setRightClickMenu(shellViewPopupMenu);
         automaticBindClick.bindMenuItemClick(shellViewPopupMenu, (Map)null, this);
         this.addEasterEgg();
@@ -153,6 +171,74 @@ public class MainActivity extends JFrame {
         this.setLocationRelativeTo((Component)null);
         this.setVisible(true);
         this.setDefaultCloseOperation(3);
+    }
+
+    /**
+     * 创建工具栏
+     */
+    private void createToolBar() {
+        this.toolBar = new JToolBar();
+        this.toolBar.setFloatable(false);
+        this.toolBar.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
+        JButton addButton = this.createToolBarButton("添加Shell", "addShell");
+        JButton editButton = this.createToolBarButton("编辑", "editShell");
+        JButton deleteButton = this.createToolBarButton("删除", "removeShell");
+        this.toolBar.add(addButton);
+        this.toolBar.addSeparator();
+        this.toolBar.add(editButton);
+        this.toolBar.add(deleteButton);
+        this.toolBar.addSeparator();
+        
+        JButton connectButton = this.createToolBarButton("连接", "interact");
+        JButton cacheButton = this.createToolBarButton("缓存连接", "interactCache");
+        this.toolBar.add(connectButton);
+        this.toolBar.add(cacheButton);
+        this.toolBar.addSeparator();
+        
+        JButton scanButton = this.createToolBarButton("存活扫描", "shellLiveScan");
+        JButton generateButton = this.createToolBarButton("生成Shell", "generateShell");
+        this.toolBar.add(scanButton);
+        this.toolBar.add(generateButton);
+        this.toolBar.addSeparator();
+        
+        JButton refreshButton = this.createToolBarButton("刷新", "refreshShellView");
+        this.toolBar.add(refreshButton);
+    }
+
+    /**
+     * 创建工具栏按钮
+     */
+    private JButton createToolBarButton(String text, String actionCommand) {
+        JButton button = new JButton(text);
+        button.setFocusPainted(false);
+        button.setFont(new Font("微软雅黑", Font.PLAIN, 12));
+        button.setActionCommand(actionCommand);
+        return button;
+    }
+
+    /**
+     * 创建状态栏
+     */
+    private void createStatusBar() {
+        this.statusBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        this.statusBar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new java.awt.Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        this.statusLabel = new JLabel("就绪");
+        this.statusLabel.setFont(new Font("微软雅黑", Font.PLAIN, 12));
+        this.statusBar.add(this.statusLabel);
+    }
+
+    /**
+     * 创建菜单项
+     */
+    private JMenuItem createMenuItem(String text, String actionCommand) {
+        JMenuItem menuItem = new JMenuItem(text);
+        menuItem.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        menuItem.setActionCommand(actionCommand);
+        return menuItem;
     }
 
     private void addEasterEgg() {
