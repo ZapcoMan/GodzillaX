@@ -1,4 +1,4 @@
-# Godzilla WebShell 管理工具 v4.01
+# GodzillaX WebShell 管理工具 v1.0
 
 <div align="center">
 
@@ -18,7 +18,7 @@
 
 Godzilla (哥斯拉) 是一款开源的 WebShell 管理工具,支持 Java、PHP、ASP、C# 等多种语言的 WebShell 管理和渗透测试功能。
 
-本项目为 **Godzilla 4.01 源码版本**,经过深度优化和增强,特别注重**流量隐蔽性**和**安全性**。
+本项目基于 **Godzilla 4.01 源码版本** 二次开发,经过深度优化和增强,特别注重**流量隐蔽性**和**安全性**。
 
 ### 🎯 适用场景
 
