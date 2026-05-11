@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +39,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -221,11 +221,12 @@ public class functions {
             return a;
          } else {
             try {
+               SecureRandom secureRandom = new SecureRandom();
                if (a > b) {
-                  temp = (new Random()).nextInt(a - b);
+                  temp = secureRandom.nextInt(a - b);
                   return temp + b;
                } else {
-                  temp = (new Random()).nextInt(b - a);
+                  temp = secureRandom.nextInt(b - a);
                   return temp + a;
                }
             } catch (Exception var4) {
@@ -585,7 +586,7 @@ public class functions {
 
    public static String getRandomString(int length) {
       String str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      Random random = new Random();
+      SecureRandom random = new SecureRandom();
       StringBuffer sb = new StringBuffer();
       sb.append(str.charAt(random.nextInt(52)));
       str = str + "0123456789";
