@@ -92,7 +92,7 @@ public class CShapAsmxAesBase64 implements Cryption {
    }
 
    public byte[] generate(String password, String secretKey) {
-      return Generate.GenerateShellLoderByAsmx(password, functions.md5(secretKey).substring(0, 16));
+      return Generate.GenerateShellLoderByAsmx(password, functions.deriveSecureKey(secretKey));
    }
 
    private static String readXmlRequest(String pass) {

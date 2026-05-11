@@ -29,6 +29,9 @@ import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.KeySpec;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -721,6 +724,67 @@ public class functions {
       }
 
       return ret;
+   }
+
+   /**
+    * 使用 PBKDF2 派生密钥
+    * @param password 原始密码/密钥
+    * @param salt 盐值（使用固定盐以保持向后兼容）
+    * @param keyLength 密钥长度（位），默认 256
+    * @param iterations 迭代次数，默认 10000
+    * @return 派生的密钥字节数组
+    */
+   public static byte[] deriveKeyPBKDF2(String password, byte[] salt, int keyLength, int iterations) {
+      try {
+         SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+         KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyLength);
+         return skf.generateSecret(spec).getEncoded();
+      } catch (Exception e) {
+         Log.error((Throwable)e);
+         return null;
+      }
+   }
+
+   /**
+    * 使用 PBKDF2 派生密钥（简化版本，使用默认参数）
+    * @param password 原始密码/密钥
+    * @return 32字节（256位）的派生密钥
+    */
+   public static byte[] deriveKeyPBKDF2(String password) {
+      // 使用固定盐值以保持向后兼容性
+      // 在实际部署中，建议为每个会话生成随机盐值并存储
+      byte[] defaultSalt = "GodzillaX_Salt_2024".getBytes();
+      return deriveKeyPBKDF2(password, defaultSalt, 256, 10000);
+   }
+
+   /**
+    * 将字节数组转换为十六进制字符串
+    * @param bytes 字节数组
+    * @return 十六进制字符串
+    */
+   public static String bytesToHex(byte[] bytes) {
+      if (bytes == null) {
+         return "";
+      }
+      StringBuilder sb = new StringBuilder();
+      for (byte b : bytes) {
+         sb.append(String.format("%02x", b));
+      }
+      return sb.toString();
+   }
+
+   /**
+    * 安全的密钥派生方法（用于替代 MD5）
+    * @param secretKey 原始密钥
+    * @return 派生后的密钥字符串（32字节十六进制，64字符）
+    */
+   public static String deriveSecureKey(String secretKey) {
+      byte[] derivedKey = deriveKeyPBKDF2(secretKey);
+      if (derivedKey != null) {
+         return bytesToHex(derivedKey);
+      }
+      // 降级方案：使用 SHA-256
+      return SHA(secretKey.getBytes(), "SHA-256");
    }
 
    public static String getCurrentTime() {

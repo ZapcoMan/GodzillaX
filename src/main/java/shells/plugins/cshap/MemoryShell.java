@@ -83,7 +83,7 @@ public class MemoryShell implements Plugin {
 
          ReqParameter reqParameter = new ReqParameter();
          reqParameter.add("password", password);
-         reqParameter.add("key", functions.md5(key).substring(0, 16));
+         reqParameter.add("key", functions.deriveSecureKey(key));
          reqParameter.add("action", "addShell");
          String result = new String(this.payload.evalFunc("memoryShell.Run", "addShell", reqParameter));
          GOptionPane.showMessageDialog(UiFunction.getParentWindow(this.mainPanel), result);

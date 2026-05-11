@@ -112,6 +112,9 @@ public class JavaAesGcm implements Cryption {
    }
 
    public byte[] generate(String password, String secretKey) {
-      return Generate.GenerateShellLoder(password, functions.md5(secretKey).substring(0, 16), true);
+      // 使用 PBKDF2 派生密钥
+      byte[] derivedKey = functions.deriveKeyPBKDF2(secretKey);
+      String keyHex = derivedKey != null ? functions.bytesToHex(derivedKey) : functions.SHA(secretKey.getBytes(), "SHA-256");
+      return Generate.GenerateShellLoder(password, keyHex, true);
    }
 }

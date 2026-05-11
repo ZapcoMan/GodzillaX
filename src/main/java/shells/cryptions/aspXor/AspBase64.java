@@ -102,6 +102,6 @@ public class AspBase64 implements Cryption {
    }
 
    public byte[] generate(String password, String secretKey) {
-      return Generate.GenerateShellLoder(password, functions.md5(secretKey).substring(0, 16), this.getClass().getSimpleName());
+      return Generate.GenerateShellLoder(password, functions.deriveSecureKey(secretKey), this.getClass().getSimpleName());
    }
 }

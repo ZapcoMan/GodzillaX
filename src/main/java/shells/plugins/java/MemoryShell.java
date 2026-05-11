@@ -81,7 +81,7 @@ public class MemoryShell implements Plugin {
 
    private void runButtonClick(ActionEvent actionEvent) {
       try {
-         String secretKey = functions.md5(this.secretKeyTextField.getText()).substring(0, 16);
+         String secretKey = functions.deriveSecureKey(this.secretKeyTextField.getText());
          String pattern = this.urlTextField.getText();
          String password = this.passwordTextField.getText();
          if (secretKey.length() > 0 && pattern.length() > 0 && password.length() > 0) {

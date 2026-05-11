@@ -146,7 +146,13 @@ public class ShellEntity {
    }
 
    public String getSecretKeyX() {
-      return functions.md5(this.getSecretKey()).substring(0, 16);
+      // 使用 PBKDF2 派生密钥，返回32字节（256位）的十六进制字符串
+      byte[] derivedKey = functions.deriveKeyPBKDF2(this.getSecretKey());
+      if (derivedKey != null) {
+         return functions.bytesToHex(derivedKey);
+      }
+      // 降级方案：如果 PBKDF2 失败，使用 SHA-256
+      return functions.SHA(this.getSecretKey().getBytes(), "SHA-256");
    }
 
    public String getPayload() {

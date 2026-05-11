@@ -80,6 +80,6 @@ public class JavaAesBase64Ex implements Cryption {
    }
 
    public byte[] generate(String password, String secretKey) {
-      return Generate.GenerateShellLoder("JavaShellEx", password, functions.md5(secretKey).substring(0, 16), false);
+      return Generate.GenerateShellLoder("JavaShellEx", password, functions.deriveSecureKey(secretKey), false);
    }
 }

@@ -207,7 +207,7 @@ public class StealthGcm implements Cryption {
    }
 
    public byte[] generate(String password, String secretKey) {
-      return Generate.GenerateShellLoder(password, functions.md5(secretKey).substring(0, 16), true);
+      return Generate.GenerateShellLoder(password, functions.deriveSecureKey(secretKey), true);
    }
    
    /**
