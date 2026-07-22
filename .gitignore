@@ -4,3 +4,4 @@ target/
 ### IntelliJ IDEA ###
 .idea
 *.db
+/.feisuan/
