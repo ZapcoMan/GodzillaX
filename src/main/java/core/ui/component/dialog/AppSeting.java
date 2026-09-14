@@ -1,7 +1,5 @@
 package core.ui.component.dialog;
 
-import com.formdev.flatlaf.demo.intellijthemes.IJThemeInfo;
-import com.formdev.flatlaf.demo.intellijthemes.IJThemesPanel;
 import core.ApplicationContext;
 import core.Db;
 import core.EasyI18N;
@@ -92,7 +90,7 @@ public class AppSeting extends JDialog {
    private JTextField oneceBigFileDownloadByteNumTextField;
    private JButton bigFileConfigSaveButton;
    private JSplitPane themesSplitPane;
-   private IJThemesPanel themesPanel;
+   private ThemesPanel themesPanel;
    private JButton updateThemesButton;
    private static final HashMap<String, Class<?>> pluginSeting = new HashMap();
 
@@ -241,7 +239,7 @@ public class AppSeting extends JDialog {
    }
 
    public void initThemesPanel() {
-      this.themesPanel = new IJThemesPanel();
+      this.themesPanel = new ThemesPanel();
       this.updateThemesButton = new JButton("修改");
       this.themesSplitPane = new JSplitPane(0);
       this.themesSplitPane.setBottomComponent(this.updateThemesButton);
@@ -450,9 +448,9 @@ public class AppSeting extends JDialog {
    }
 
    private void updateThemesButtonClick(ActionEvent actionEvent) {
-      IJThemeInfo ijThemeInfo = this.themesPanel.getSelect();
-      if (ijThemeInfo != null && ApplicationContext.saveUi(ijThemeInfo)) {
-         GOptionPane.showMessageDialog(this, "修改成功!", "提示", 1);
+      ThemesPanel.ThemeInfo themeInfo = this.themesPanel.getSelected();
+      if (themeInfo != null && ApplicationContext.saveUi(themeInfo.lafClassName)) {
+         GOptionPane.showMessageDialog(this, "修改成功! 重启程序生效", "提示", 1);
       } else {
          GOptionPane.showMessageDialog(this, "修改失败!", "提示", 2);
       }

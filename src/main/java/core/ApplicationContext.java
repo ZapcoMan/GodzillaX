@@ -1,6 +1,5 @@
 package core;
 
-import com.formdev.flatlaf.demo.intellijthemes.IJThemeInfo;
 import com.formdev.flatlaf.util.SystemInfo;
 import core.annotation.CryptionAnnotation;
 import core.annotation.PayloadAnnotation;
@@ -535,33 +534,22 @@ public class ApplicationContext {
       JFrame.setDefaultLookAndFeelDecorated(true);
       JDialog.setDefaultLookAndFeelDecorated(true);
 
-      // 3. 确保数据库有默认主题配置（仅写入，不再用旧版 flatlaf-demo 的 IJThemesPanel.setTheme 切换 LAF）
-      //    注意：lib/flatlaf-demo-1.4.jar 中的 IJThemesPanel 为 1.4 旧版，与 flatlaf 3.7.2 核心库版本不匹配，
-      //    其 setTheme 在 LAF 切换过程中会破坏 FlatLaf 内部 padding 等字段的初始化时序，
-      //    导致后续创建 JComboBox 时 FlatComboBoxUI.applyStyle 抛 NullPointerException (this.padding is null)。
-      //    主题安装完全交由 ModernUITheme.applySavedTheme()（3.7.2 API）负责即可。
-      String resourceNameString = Db.getSetingValue("ui-resourceName");
+      // 3. 确保数据库有默认主题配置（仅 lafClassName，不再使用旧 flatlaf-demo 的 resourceName）
+      //    主题安装完全交由 ModernUITheme.applySavedTheme()（3.7.2 原生 API）负责。
       String lafClassNameString = Db.getSetingValue("ui-lafClassName");
-      if (resourceNameString == null && lafClassNameString == null) {
+      if (lafClassNameString == null) {
          Db.updateSetingKV("ui-lafClassName", "com.formdev.flatlaf.FlatIntelliJLaf");
       }
    }
 
-   public static boolean saveUi(IJThemeInfo themeInfo) {
+   public static boolean saveUi(String lafClassName) {
       try {
-         String resourceNameString = themeInfo.getResourceName();
-         String lafClassNameString = themeInfo.getLafClassName();
-         if (resourceNameString != null && lafClassNameString == null) {
-            Db.updateSetingKV("ui-resourceName", resourceNameString);
-            Db.removeSetingK("ui-lafClassName");
-         }
-
-         if (lafClassNameString != null && resourceNameString == null) {
-            Db.updateSetingKV("ui-lafClassName", lafClassNameString);
+         if (lafClassName != null) {
+            Db.updateSetingKV("ui-lafClassName", lafClassName);
+            // 清除旧 flatlaf-demo 残留的 ui-resourceName（3.7.2 不再支持 JSON 主题资源加载）
             Db.removeSetingK("ui-resourceName");
          }
-
-         return lafClassNameString != null || resourceNameString != null;
+         return lafClassName != null;
       } catch (Exception var3) {
          Log.error((Throwable)var3);
          return false;
