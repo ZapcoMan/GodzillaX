@@ -460,8 +460,11 @@ Made with ❤️ by GodzillaX Team
 ## 📞 联系方式
 
 - **GitHub 上游**: https://github.com/BeichenDream/Godzilla
-- **GitHub 二开**: https://github.com/ZapcoMan/GodzillaX
 - **邮箱**: XXXXXXXXXX@gmail.com
+
+---
+
+- **GitHub 二开**: https://github.com/ZapcoMan/GodzillaX
 - **二开邮箱**: XXXXXXXXXX@gmail.com
 
 ---
@@ -470,8 +473,7 @@ Made with ❤️ by GodzillaX Team
 
 **⭐ 如果这个项目对你有帮助,请给个 Star!**
 
-Made with ❤️ by Godzilla Team
-
+Made with ❤️ by GodzillaX
 </div>
 
   
