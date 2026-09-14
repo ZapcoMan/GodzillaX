@@ -1,22 +1,5 @@
 target/
 .DS_Store
-node_modules
-
-dist
-wos-dist
-sys-dist
-srs-dist
-sso-dist
-pms-dist
-bpm-dist
-wos-dist.zip
-sys-dist.zip
-srs-dist.zip
-sso-dist.zip
-pms-dist.zip
-bpm-dist.zip
-.npmrc
-.cache
 
 tests/server/static
 tests/server/static/upload
