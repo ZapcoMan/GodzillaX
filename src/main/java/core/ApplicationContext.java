@@ -11,6 +11,7 @@ import core.imp.Cryption;
 import core.imp.Payload;
 import core.imp.Plugin;
 import core.shell.ShellEntity;
+import core.ui.ModernUITheme;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.io.ByteArrayInputStream;
@@ -514,25 +515,18 @@ public class ApplicationContext {
    }
 
    public static void initUi() {
-      if (SystemInfo.isMacOS && System.getProperty("apple.laf.useScreenMenuBar") == null) {
-         System.setProperty("apple.laf.useScreenMenuBar", "true");
+      // 1. 应用现代化 UI 主题（圆角、阴影、表格、菜单、滚动条等统一配置）
+      try {
+         ModernUITheme.apply();
+      } catch (Throwable t) {
+         Log.error(t);
       }
 
-      // 启用现代化UI特性
-      UIManager.put("Table.showHorizontalLines", true);
-      UIManager.put("Table.showVerticalLines", true);
-      
-      // 设置圆角效果
-      UIManager.put("Component.arc", 8);
-      UIManager.put("Button.arc", 8);
-      UIManager.put("TextField.arc", 8);
-      UIManager.put("ComboBox.arc", 8);
-      
-      // 设置阴影效果
-      UIManager.put("Popup.dropShadowBorderWidth", 3);
-      
+      // 2. 装饰窗口（让标题栏也用 FlatLaf 风格）
       JFrame.setDefaultLookAndFeelDecorated(true);
       JDialog.setDefaultLookAndFeelDecorated(true);
+
+      // 3. 兼容旧逻辑：如果数据库中保存了主题，覆盖默认主题
       String resourceNameString = Db.getSetingValue("ui-resourceName");
       String lafClassNameString = Db.getSetingValue("ui-lafClassName");
       if (resourceNameString == null && lafClassNameString == null) {

@@ -32,6 +32,7 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Vector;
+import com.formdev.flatlaf.ui.FlatRoundBorder;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -42,6 +43,8 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import util.Log;
 import util.automaticBindClick;
 import util.functions;
@@ -77,13 +80,25 @@ public class MainActivity extends JFrame {
 
    private void initVariable() {
       this.setTitle(EasyI18N.getI18nString("哥斯拉X   V%s by: ZapcoMan Github:https://github.com/ZapcoMan/GodzillaX", "1.0"));
-      this.setLayout(new BorderLayout(2, 2));
+      this.setLayout(new BorderLayout(0, 0));
       this.currentGroup = "/";
       
-      // 优化状态栏
-      this.statusLabel = new JLabel("status");
-      this.statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-      this.statusLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 13));
+      // 优化状态栏 — 现代化样式
+      this.statusLabel = new JLabel("  status");
+      this.statusLabel.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+      this.statusLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
+      // 状态栏使用与菜单栏一致的背景色，视觉连贯
+      Color statusBg = UIManager.getColor("MenuBar.background");
+      if (statusBg != null) {
+         this.statusLabel.setBackground(statusBg);
+         this.statusLabel.setOpaque(true);
+      }
+      Color topBorderColor = UIManager.getColor("Component.borderColor");
+      if (topBorderColor == null) topBorderColor = new Color(128, 128, 128, 80);
+      this.statusLabel.setBorder(BorderFactory.createCompoundBorder(
+              BorderFactory.createMatteBorder(1, 0, 0, 0, topBorderColor),
+              BorderFactory.createEmptyBorder(6, 12, 6, 12)
+      ));
       
       Vector<Vector<String>> rows = Db.getAllShell();
       this.columnVector = (Vector)rows.get(0);
@@ -92,23 +107,36 @@ public class MainActivity extends JFrame {
       this.refreshShellView();
       this.shellView.setSelectionMode(2);
       
-      // 优化分割面板
+      // 优化分割面板 — 现代化样式
       this.splitPane = new JSplitPane(1);
-      this.splitPane.setDividerSize(8);
+      this.splitPane.setDividerSize(6);
       this.splitPane.setContinuousLayout(true);
+      this.splitPane.setBorder(BorderFactory.createEmptyBorder());
+      // 立即设置 divider，避免移动后留白
+      this.splitPane.setResizeWeight(0.0);
       
       this.shellGroupTree = new ShellGroup();
       JScrollPane leftScrollPane = new JScrollPane(this.shellGroupTree);
-      leftScrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+      leftScrollPane.setBorder(BorderFactory.createEmptyBorder());
+      // 添加少量内边距，避免内容紧贴边缘
+      leftScrollPane.setViewportBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
       
       this.shellViewScrollPane = new JScrollPane(this.shellView);
-      this.shellViewScrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+      this.shellViewScrollPane.setBorder(BorderFactory.createEmptyBorder());
+      this.shellViewScrollPane.setViewportBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+      // 让表格不自动调整宽度，用滚动条
+      this.shellView.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
       
       this.splitPane.setLeftComponent(leftScrollPane);
       this.splitPane.setRightComponent(this.shellViewScrollPane);
       this.splitPane.setDividerLocation(250);
+      this.splitPane.setOneTouchExpandable(false);
       
-      this.add(this.splitPane);
+      // 主内容容器添加少量外边距（现代化卡片式布局）
+      JPanel mainPanel = new JPanel(new BorderLayout());
+      mainPanel.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+      mainPanel.add(this.splitPane, "Center");
+      this.add(mainPanel, "Center");
       this.add(this.statusLabel, "South");
       
       // 优化菜单栏
@@ -145,11 +173,14 @@ public class MainActivity extends JFrame {
          this.currentGroup = this.shellGroupTree.GetSelectFile().trim();
          this.refreshShellView();
       });
+      // 现代化菜单栏：添加间距，使菜单更宽松
       menuBar.add(this.targetMenu);
       menuBar.add(this.attackMenu);
       menuBar.add(this.configMenu);
       menuBar.add(this.aboutMenu);
       menuBar.add(pluginMenu);
+      // 菜单栏添加上下间距和扁平化
+      menuBar.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
       this.setJMenuBar(menuBar);
       
       // 优化右键菜单
@@ -174,6 +205,11 @@ public class MainActivity extends JFrame {
       shellViewPopupMenu.add(removeShell);
       shellViewPopupMenu.add(editShell);
       shellViewPopupMenu.add(refreshShell);
+      // 现代化弹出菜单：设置边距和阴影
+      shellViewPopupMenu.setBorder(BorderFactory.createCompoundBorder(
+              BorderFactory.createLineBorder(new Color(128, 128, 128, 80), 1),
+              BorderFactory.createEmptyBorder(4, 4, 4, 4)
+      ));
       this.shellView.setRightClickMenu(shellViewPopupMenu);
       automaticBindClick.bindMenuItemClick(shellViewPopupMenu, (Map)null, this);
       this.addEasterEgg();
