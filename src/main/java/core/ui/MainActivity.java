@@ -256,7 +256,7 @@ public class MainActivity extends JFrame {
    }
 
    private void aboutMenuItemClick(ActionEvent e) {
-      GOptionPane.showMessageDialog(getFrame(), EasyI18N.getI18nString("由BeichenDream强力驱动\nMail:beichendream@gmail.com"), "About", -1);
+      GOptionPane.showMessageDialog(getFrame(), EasyI18N.getI18nString("由BeichenDream强力驱动\nMail:beichendream@gmail.com\n 由 ZapcoMan 进行二次开发\n GodzillaX"), "About", -1);
    }
 
    private void copyShellViewSelectedMenuItemClick(ActionEvent e) {
