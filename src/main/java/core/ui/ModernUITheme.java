@@ -2,7 +2,6 @@ package core.ui;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLaf;
-import com.formdev.flatlaf.IntelliJTheme;
 import com.formdev.flatlaf.util.SystemInfo;
 import core.Db;
 import javax.swing.BorderFactory;
@@ -33,6 +32,22 @@ public final class ModernUITheme {
      * 由 {@link core.ApplicationContext#initUi()} 调用
      */
     public static void apply() {
+        // 1. 先切换 LAF（基于数据库保存的主题）
+        applySavedTheme();
+        // 2. LAF 安装后再配置颜色/样式 —— 此时 UIManager 读取的是新主题颜色，
+        //    避免切换主题后硬编码颜色停留在旧主题导致"按钮/菜单字看不清"
+        configureAll();
+        // 3. 关键 padding 兜底，避免 FlatLaf 内部字段为 null 抛 NPE
+        ensureRequiredDefaults();
+    }
+
+    /**
+     * 基于「当前已安装的 LAF」重新配置所有颜色/样式。
+     * <p>
+     * 主题切换后（如 ThemesPanel 实时预览、保存主题重启）必须重新调用本方法，
+     * 才能让选择高亮、边框、按钮强调色等跟随新主题深浅。
+     */
+    public static void configureAll() {
         configureGlobalDefaults();
         configureMenuBar();
         configureTables();
@@ -45,10 +60,6 @@ public final class ModernUITheme {
         configureFileChooser();
         configureScrollPane();
         configureTabbedPane();
-        applySavedTheme();
-        // LAF 安装完成后再做一次关键默认值兜底，避免任何 LAF 状态异常
-        // 导致 FlatLaf 内部 padding 字段为 null 而抛 NullPointerException
-        ensureRequiredDefaults();
     }
 
     /**
@@ -77,23 +88,23 @@ public final class ModernUITheme {
      * 应用持久化保存的主题
      */
     private static void applySavedTheme() {
+        // 清除旧 flatlaf-demo-1.4 残留的 ui-resourceName（其携带的 JSON 主题引用了
+        // 3.7.2 已移除的 $ColorPalette.table 变量，会导致 IntelliJTheme.setup 解析失败）
         String resourceName = Db.getSetingValue("ui-resourceName");
+        if (resourceName != null) {
+            Db.removeSetingK("ui-resourceName");
+        }
         String lafClassName = Db.getSetingValue("ui-lafClassName");
-        if (resourceName == null && lafClassName == null) {
-            // 默认使用 FlatIntelliJLaf（深色现代化主题）
-            Db.updateSetingKV("ui-lafClassName", FlatIntelliJLaf.class.getName());
+        if (lafClassName == null) {
+            // 默认使用 FlatIntelliJLaf（现代化主题）
             lafClassName = FlatIntelliJLaf.class.getName();
+            Db.updateSetingKV("ui-lafClassName", lafClassName);
         }
         try {
-            if (resourceName != null) {
-                // IntelliJTheme json 资源
-                IntelliJTheme.setup(ModernUITheme.class.getResourceAsStream(
-                        "/com/formdev/flatlaf/intellijthemes/themes/" + resourceName + ".json"));
-            } else if (lafClassName != null) {
-                Class<?> lafClass = Class.forName(lafClassName);
-                FlatLaf laf = (FlatLaf) lafClass.getDeclaredConstructor().newInstance();
-                FlatLaf.setup(laf);
-            }
+            // 统一使用 lafClassName 实例化主题（内置 FlatLaf + flatlaf-intellij-themes 3.7.2 类）
+            Class<?> lafClass = Class.forName(lafClassName);
+            FlatLaf laf = (FlatLaf) lafClass.getDeclaredConstructor().newInstance();
+            FlatLaf.setup(laf);
         } catch (Throwable t) {
             // 降级到 FlatIntelliJLaf
             try {
@@ -230,8 +241,8 @@ public final class ModernUITheme {
             }
         } catch (Throwable ignored) {
         }
-        // 选择高亮
-        UIManager.put("Table.selectionInactiveBackground", new Color(60, 110, 180, 60));
+        // 选择高亮：基于主题强调色做半透明，跟随主题深浅
+        UIManager.put("Table.selectionInactiveBackground", withAlpha(accentColor(), 60));
         UIManager.put("Table.selectionInactiveForeground", UIManager.getColor("Table.foreground"));
         // 表头
         UIManager.put("TableHeader.height", 36);
@@ -244,8 +255,8 @@ public final class ModernUITheme {
     private static void configureTrees() {
         UIManager.put("Tree.rowHeight", 28);
         UIManager.put("Tree.paintSelectionBorder", false);
-        // 选中条圆角效果（依赖 FlatLaf）
-        UIManager.put("Tree.selectionBackground", new Color(60, 110, 180, 60));
+        // 选中条：基于主题强调色半透明，跟随主题深浅
+        UIManager.put("Tree.selectionBackground", withAlpha(accentColor(), 60));
         UIManager.put("Tree.selectionBorderColor", new Color(0, 0, 0, 0));
         UIManager.put("Tree.editorBorder", BorderFactory.createEmptyBorder(1, 1, 1, 1));
     }
@@ -255,7 +266,7 @@ public final class ModernUITheme {
      */
     private static void configureLists() {
         UIManager.put("List.rowHeight", 28);
-        UIManager.put("List.selectionInactiveBackground", new Color(60, 110, 180, 60));
+        UIManager.put("List.selectionInactiveBackground", withAlpha(accentColor(), 60));
     }
 
     /**
@@ -277,7 +288,8 @@ public final class ModernUITheme {
                 accent = new Color(60, 130, 246);
             }
             UIManager.put("Button.default.background", accent);
-            UIManager.put("Button.default.foreground", Color.WHITE);
+            // 默认按钮前景：根据强调色亮度自动选黑/白，避免浅色强调色上白字看不清
+            UIManager.put("Button.default.foreground", contrastForeground(accent));
             UIManager.put("Button.default.boldText", true);
 
             // 主按钮悬停态增强
@@ -297,8 +309,10 @@ public final class ModernUITheme {
      */
     private static void configurePopupMenu() {
         UIManager.put("PopupMenu.dropShadowPainted", true);
+        Color pcb = UIManager.getColor("Component.borderColor");
+        if (pcb == null) pcb = new Color(128, 128, 128, 80);
         UIManager.put("PopupMenu.border", BorderFactory.createCompoundBorder(
-                new LineBorder(new Color(128, 128, 128, 80), 1),
+                new LineBorder(pcb, 1),
                 BorderFactory.createEmptyBorder(4, 4, 4, 4)
         ));
         // MenuItem 间距
@@ -313,7 +327,7 @@ public final class ModernUITheme {
         UIManager.put("SplitPane.dividerSize", 6);
         UIManager.put("SplitPane.continuousLayout", true);
         UIManager.put("SplitPaneDivider.gripColor", new Color(180, 180, 180, 0));  // 隐藏 grip dot
-        UIManager.put("SplitPaneDivider.draggingColor", new Color(60, 110, 180, 60));
+        UIManager.put("SplitPaneDivider.draggingColor", withAlpha(accentColor(), 60));
     }
 
     /**
@@ -366,6 +380,27 @@ public final class ModernUITheme {
         } catch (NumberFormatException e) {
             return Color.GRAY;
         }
+    }
+
+    /** 取当前主题强调色（accent），回退到 List.selectionBackground 或固定蓝 */
+    private static Color accentColor() {
+        Color c = UIManager.getColor("Component.accentColor");
+        if (c == null) c = UIManager.getColor("List.selectionBackground");
+        if (c == null) c = new Color(60, 130, 246);
+        return c;
+    }
+
+    /** 给颜色加透明度（alpha 0-255） */
+    private static Color withAlpha(Color c, int alpha) {
+        if (c == null) return new Color(60, 110, 180, alpha);
+        return new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
+    }
+
+    /** 根据背景色亮度返回对比前景色（亮背景→黑字，暗背景→白字） */
+    private static Color contrastForeground(Color bg) {
+        if (bg == null) return Color.WHITE;
+        double y = (0.299 * bg.getRed() + 0.587 * bg.getGreen() + 0.114 * bg.getBlue()) / 255.0;
+        return y > 0.55 ? Color.BLACK : Color.WHITE;
     }
 
     /**
