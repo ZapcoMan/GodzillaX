@@ -31,6 +31,11 @@ import util.functions;
 
 public class Http {
    private static final HostnameVerifier hostnameVerifier = new TrustAnyHostnameVerifier();
+   /**
+    * 信任所有 HTTPS 证书的 SSLContext（实例级，不再修改全局默认）
+    * 每个 Http 实例创建一次，避免重复初始化开销
+    */
+   private SSLContext trustAllSSLContext;
    private final Proxy proxy;
    private final ShellEntity shellContext;
    private CookieManager cookieManager;
@@ -48,7 +53,13 @@ public class Http {
          HttpURLConnection httpConn = (HttpURLConnection)url.openConnection(proxy);
          httpConn.setFixedLengthStreamingMode(requestData.length);
          if (httpConn instanceof HttpsURLConnection) {
-            ((HttpsURLConnection)httpConn).setHostnameVerifier(hostnameVerifier);
+            HttpsURLConnection httpsConn = (HttpsURLConnection)httpConn;
+            httpsConn.setHostnameVerifier(hostnameVerifier);
+            // 实例级 SSL：只对该连接生效，不污染全局默认 SSLSocketFactory
+            SSLContext ctx = getTrustAllSSLContext();
+            if (ctx != null) {
+               httpsConn.setSSLSocketFactory(ctx.getSocketFactory());
+            }
          }
 
          httpConn.setDoInput(true);
@@ -128,21 +139,32 @@ public class Http {
 
    }
 
-   private static void trustAllHttpsCertificates() {
+   /**
+    * 创建信任所有证书的 SSLContext（实例级）
+    * 不再修改全局 HttpsURLConnection.setDefaultSSLSocketFactory，
+    * 避免影响同一 JVM 中其他组件的安全策略
+    */
+   private static SSLContext createTrustAllSSLContext() {
       try {
-         TrustManager[] trustAllCerts = new TrustManager[1];
-         TrustManager tm = new miTM();
-         trustAllCerts[0] = tm;
-         SSLContext sc = SSLContext.getInstance("SSL");
+         TrustManager[] trustAllCerts = new TrustManager[]{new miTM()};
+         // 优先使用 TLS，兼容旧环境
+         SSLContext sc = SSLContext.getInstance("TLS");
          sc.init((KeyManager[])null, trustAllCerts, new SecureRandom());
-         HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-         SSLContext sc2 = SSLContext.getInstance("TLS");
-         sc2.init((KeyManager[])null, trustAllCerts, new SecureRandom());
-         HttpsURLConnection.setDefaultSSLSocketFactory(sc2.getSocketFactory());
-      } catch (Exception var4) {
-         var4.printStackTrace();
+         return sc;
+      } catch (Exception var2) {
+         var2.printStackTrace();
+         return null;
       }
+   }
 
+   /**
+    * 获取当前 Http 实例的信任所有证书 SSLContext（懒加载 + 缓存）
+    */
+   private SSLContext getTrustAllSSLContext() {
+      if (this.trustAllSSLContext == null) {
+         this.trustAllSSLContext = createTrustAllSSLContext();
+      }
+      return this.trustAllSSLContext;
    }
 
    public synchronized URI getUri() {
@@ -189,9 +211,8 @@ public class Http {
       return this.cookieManager;
    }
 
-   static {
-      trustAllHttpsCertificates();
-   }
+   // 静态块已删除：不再在类加载时修改全局 SSLSocketFactory
+   // 改为在 SendHttpConn 中对每个 HttpsURLConnection 实例单独 setSSLSocketFactory
 
    public static class TrustAnyHostnameVerifier implements HostnameVerifier {
       public boolean verify(String hostname, SSLSession session) {
