@@ -459,8 +459,10 @@ Made with ❤️ by GodzillaX Team
 
 ## 📞 联系方式
 
-- **GitHub**: https://github.com/BeichenDream/Godzilla
-- **邮箱**: beichendream@gmail.com
+- **GitHub 上游**: https://github.com/BeichenDream/Godzilla
+- **GitHub 二开**: https://github.com/ZapcoMan/GodzillaX
+- **邮箱**: XXXXXXXXXX@gmail.com
+- **二开邮箱**: XXXXXXXXXX@gmail.com
 
 ---
 
