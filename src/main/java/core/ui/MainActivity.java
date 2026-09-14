@@ -78,6 +78,7 @@ public class MainActivity extends JFrame {
 
    private void initVariable() {
       this.setTitle(EasyI18N.getI18nString("哥斯拉X   V%s by: ZapcoMan Github:https://github.com/ZapcoMan/GodzillaX", "1.0"));
+      this.setAppIcon();
       this.setLayout(new BorderLayout(0, 0));
       this.currentGroup = "/";
       
@@ -218,6 +219,40 @@ public class MainActivity extends JFrame {
       
       // 设置窗口最小尺寸
       this.setMinimumSize(new Dimension(1000, 500));
+   }
+
+   /** 设置窗口/任务栏图标（SVG 渲染为多尺寸 Image） */
+   private void setAppIcon() {
+      try {
+         java.util.List<java.awt.Image> images = new java.util.ArrayList<java.awt.Image>();
+         int[] sizes = {16, 32, 48, 64, 128, 256};
+         for (int s : sizes) {
+            try {
+               com.formdev.flatlaf.extras.FlatSVGIcon ic =
+                       new com.formdev.flatlaf.extras.FlatSVGIcon("images/icon.svg", s, s);
+               if (ic.hasFound()) {
+                  java.awt.Image img = ic.getImage();
+                  if (img != null) {
+                     images.add(img);
+                  }
+               }
+            } catch (Throwable ignore) {
+            }
+         }
+         if (!images.isEmpty()) {
+            this.setIconImages(images);
+            // JDK 9+ 任务栏图标（反射调用，兼容 Java 8 编译）
+            try {
+               Class<?> taskbarClass = Class.forName("java.awt.Taskbar");
+               Object taskbar = taskbarClass.getMethod("getTaskbar").invoke(null);
+               taskbarClass.getMethod("setIconImage", java.awt.Image.class)
+                       .invoke(taskbar, images.get(images.size() - 1));
+            } catch (Throwable ignore) {
+            }
+         }
+      } catch (Throwable t) {
+         util.Log.error(t);
+      }
    }
 
    private void addEasterEgg() {
