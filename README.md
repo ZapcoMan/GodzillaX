@@ -266,7 +266,8 @@ GodzillaX/
 │   ├── 功能逻辑分析.md
 │   ├── 安全更新_PBKDF2密钥派生.md
 │   ├── 隐蔽性增强说明.md
-│   └── UI现代化改造说明.md
+│   ├── UI现代化改造说明.md
+│   └── 代码缺陷修复说明.md
 │
 ├── pom.xml                        # Maven 配置
 └── README.md                      # 项目说明
@@ -291,6 +292,22 @@ GodzillaX/
 | **配置方式** | 散落各处 | 集中在 `ModernUITheme` 类 |
 
 📖 **详细说明**: [UI现代化改造说明.md](docs/UI现代化改造说明.md)
+
+---
+
+### 🔧 代码缺陷修复 (2026-09-14)
+
+**5 项关键代码缺陷逐一修复**: 加密填充逻辑 + 跨平台编码 + PBKDF2 盐值 + SSL 全局污染 + 资源冗余
+
+| # | 问题 | 严重度 | 修复方案 |
+|---|------|--------|---------|
+| 1 | StealthGcm 填充/解填充结构不匹配 | 🔴 严重 | 重写为固定头部长度标记 `[4B realLen][数据][随机后缀]` |
+| 2 | `key.getBytes()` 平台默认编码 | 🟡 中等 | 6 个 Java 系列加密器统一 `key.getBytes(StandardCharsets.UTF_8)` |
+| 3 | PBKDF2 使用固定盐 | 🟡 中等 | 新增 `generateRandomSalt()` + shellEnv 表 shell 级 KV 读写 + `getSecretKeyXWithSalt()` |
+| 4 | Http 静态块全局 SSL 污染 | 🟡 中等 | 删除静态块，改为 `SendHttpConn` 中实例级 `setSSLSocketFactory` |
+| 5 | 资源目录冗余 | 🟢 轻微 | 删除 `src/main/java/.../Stealth/template/` 冗余目录 |
+
+📖 **详细说明**: [代码缺陷修复说明.md](docs/代码缺陷修复说明.md)
 
 ---
 
