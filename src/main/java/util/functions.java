@@ -758,6 +758,26 @@ public class functions {
    }
 
    /**
+    * 生成随机盐值
+    * @param length 盐值字节长度，推荐 16
+    * @return 随机盐值字节数组
+    */
+   public static byte[] generateRandomSalt(int length) {
+      byte[] salt = new byte[length];
+      SecureRandom sr = new SecureRandom();
+      sr.nextBytes(salt);
+      return salt;
+   }
+
+   /**
+    * 生成默认 16 字节随机盐值
+    * @return 16 字节随机盐值
+    */
+   public static byte[] generateRandomSalt() {
+      return generateRandomSalt(16);
+   }
+
+   /**
     * 将字节数组转换为十六进制字符串
     * @param bytes 字节数组
     * @return 十六进制字符串
