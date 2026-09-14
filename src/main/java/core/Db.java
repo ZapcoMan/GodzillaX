@@ -488,6 +488,74 @@ public class Db {
 
    }
 
+   /**
+    * 读取 shell 级 KV 配置
+    * @param shellId Shell ID
+    * @param key 配置键
+    * @return 配置值，不存在返回 null
+    */
+   public static String getShellEnv(String shellId, String key) {
+      String sql = "SELECT value FROM shellEnv WHERE shellId=? AND key=?";
+
+      try {
+         PreparedStatement preparedStatement = getPreparedStatement(sql);
+         preparedStatement.setString(1, shellId);
+         preparedStatement.setString(2, key);
+         ResultSet resultSet = preparedStatement.executeQuery();
+         String value = resultSet.next() ? resultSet.getString("value") : null;
+         resultSet.close();
+         preparedStatement.close();
+         return value;
+      } catch (Exception var6) {
+         Log.error((Throwable)var6);
+         return null;
+      }
+   }
+
+   /**
+    * 写入 shell 级 KV 配置（不存在则新增，存在则更新）
+    * @param shellId Shell ID
+    * @param key 配置键
+    * @param value 配置值
+    * @return 是否成功
+    */
+   public static synchronized boolean setShellEnv(String shellId, String key, String value) {
+      String existSql = "SELECT 1 FROM shellEnv WHERE shellId=? AND key=?";
+
+      try {
+         PreparedStatement existStmt = getPreparedStatement(existSql);
+         existStmt.setString(1, shellId);
+         existStmt.setString(2, key);
+         ResultSet rs = existStmt.executeQuery();
+         boolean exists = rs.next();
+         rs.close();
+         existStmt.close();
+
+         if (exists) {
+            String updateSql = "UPDATE shellEnv SET value=? WHERE shellId=? AND key=?";
+            PreparedStatement updateStmt = getPreparedStatement(updateSql);
+            updateStmt.setString(1, value);
+            updateStmt.setString(2, shellId);
+            updateStmt.setString(3, key);
+            int affectNum = updateStmt.executeUpdate();
+            updateStmt.close();
+            return affectNum > 0;
+         } else {
+            String insertSql = "INSERT INTO shellEnv (shellId, key, value) VALUES (?, ?, ?)";
+            PreparedStatement insertStmt = getPreparedStatement(insertSql);
+            insertStmt.setString(1, shellId);
+            insertStmt.setString(2, key);
+            insertStmt.setString(3, value);
+            int affectNum = insertStmt.executeUpdate();
+            insertStmt.close();
+            return affectNum > 0;
+         }
+      } catch (Exception var9) {
+         Log.error((Throwable)var9);
+         return false;
+      }
+   }
+
    public static String getSetingValue(String key, String defaultVal) {
       String ret = getSetingValue(key);
       if (ret == null) {
