@@ -63,6 +63,9 @@ public class ShellManage extends JFrame {
    private void init() {
       this.shellEntity.setFrame(this);
       this.payload = this.shellEntity.getPayloadModule();
+      // 现代化加载提示
+      this.loadLabel.setText("  Loading...");
+      this.loadLabel.setFont(new java.awt.Font("Microsoft YaHei", java.awt.Font.PLAIN, 14));
       this.add(this.loadLabel);
       functions.setWindowSize(this, 1690, 680);
       this.setLocationRelativeTo(MainActivity.getFrame());
@@ -73,6 +76,8 @@ public class ShellManage extends JFrame {
 
    private void initComponent() {
       this.remove(this.loadLabel);
+      // 现代化 TabbedPane：紧凑间距
+      this.tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
       this.add(this.tabbedPane);
       this.loadGlobalComponent();
       if (!this.shellEntity.isUseCache()) {
