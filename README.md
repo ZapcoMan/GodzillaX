@@ -74,6 +74,7 @@
 - 🖼️ **矢量图标** - JIconFont 支持，高清显示
 - 🎯 **集中式 UI 配置** - 新增 `ModernUITheme` 类，统一管理圆角/阴影/菜单/滚动条/Tab 等全局样式
 - 📦 **编码统一** - 项目源码统一 UTF-8 编码，彻底修复 GBK 编译报错问题
+- 🔄 **主题切换自适应** - 切换主题颜色实时跟随深浅，保存后自动重启生效
 
 📖 **详细说明**: [UI现代化改造说明.md](docs/UI现代化改造说明.md)
 
@@ -267,7 +268,8 @@ GodzillaX/
 │   ├── 安全更新_PBKDF2密钥派生.md
 │   ├── 隐蔽性增强说明.md
 │   ├── UI现代化改造说明.md
-│   └── 代码缺陷修复说明.md
+│   ├── 代码缺陷修复说明.md
+│   └── 主题系统修复说明.md
 │
 ├── pom.xml                        # Maven 配置
 └── README.md                      # 项目说明
@@ -308,6 +310,22 @@ GodzillaX/
 | 5 | 资源目录冗余 | 🟢 轻微 | 删除 `src/main/java/.../Stealth/template/` 冗余目录 |
 
 📖 **详细说明**: [代码缺陷修复说明.md](docs/代码缺陷修复说明.md)
+
+---
+
+### 🎨 主题系统修复 (2026-09-14)
+
+**FlatLaf 主题系统一次性彻底修复**: 移除冲突旧 demo + 自实现主题面板 + 颜色自适应 + 资源加载修复 + 保存自动重启
+
+| # | 问题 | 修复方案 |
+|---|------|---------|
+| 1 | `flatlaf-demo-1.4` 与 `flatlaf 3.7.2` 版本冲突，`IJThemesPanel.setTheme` / `FlatComboBoxUI` 接连 NPE | 删除旧 demo jar + 依赖，自实现 `ThemesPanel`（基于 3.7.2 原生 `FlatAllIJThemes.INFOS`） |
+| 2 | `src/main/java` 下资源（`classNames.txt`/`alacritty.zip`）加载返回 null | `pom.xml` 新增 `<resources>` 配置，复制非 `.java` 文件到 `target/classes` |
+| 3 | 切换主题后菜单/按钮背景固定、字看不清 | `ModernUITheme.apply()` 重排为「先切 LAF 再配色」，颜色改为基于 `accentColor` 派生，按钮前景按亮度自动选黑/白 |
+| 4 | JDK17 模态对话框 `FlatListUI` 抛 `this$0.list is null` | 主题选择 `JList` → `JComboBox`，避开 FlatListUI 时序路径 |
+| 5 | 主题切换需手动重启 | `ApplicationContext.restart()` 用同 JVM/classpath 启动新进程后退出，保存提示点确定自动重启 |
+
+📖 **详细说明**: [主题系统修复说明.md](docs/主题系统修复说明.md)
 
 ---
 
