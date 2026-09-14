@@ -52,24 +52,32 @@ public class DataView extends JTable {
       this.addMouseListener(this.rightClickEvent);
       this.setSelectionMode(0);
       this.setAutoCreateRowSorter(true);
-      this.setRowHeight(28);
+      this.setRowHeight(32);
       
-      // 优化表格样式
-      this.setShowGrid(true);
-      this.setGridColor(new java.awt.Color(220, 220, 220));
-      this.setIntercellSpacing(new java.awt.Dimension(1, 1));
+      // 现代化表格：关闭网格线，依赖交替行色与行间距做区分
+      this.setShowGrid(false);
+      this.setIntercellSpacing(new java.awt.Dimension(0, 0));
+      // 启用交替行色（配合 FlatLaf Table.alternateRowColor）
+      this.putClientProperty("JTable.alternateRowColor", Boolean.TRUE);
+      // 选中行不画整行边框，使用高亮色
+      this.putClientProperty("JTable.selectionStyle", "filled");
+      // 表格单元格内边距
+      this.putClientProperty("Table.cellPadding", new java.awt.Insets(2, 8, 2, 8));
       
       // 优化表头
       JTableHeader header = this.getTableHeader();
       header.setFont(new Font("Microsoft YaHei", Font.BOLD, 13));
-      header.setPreferredSize(new java.awt.Dimension(header.getPreferredSize().width, 35));
+      header.setPreferredSize(new java.awt.Dimension(header.getPreferredSize().width, 36));
+      header.putClientProperty("JTableHeader.style", "plain");
+      // 禁止拖动列重排（现代化固定布局）
+      header.setReorderingAllowed(false);
       
       // 设置默认单元格渲染器
       this.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
          public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             if (!isSelected) {
-               setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5));
+               setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
             }
             return c;
          }
