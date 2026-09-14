@@ -52,24 +52,25 @@
     </build>
 
     <dependencies>
+        <!-- FlatLaf 现代化 Swing LookAndFeel (升级到 3.7.2) -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
-            <version>3.2.5</version>
+            <version>3.7.2</version>
         </dependency>
 
         <!-- FlatLaf IntelliJ Themes - 更多主题选择 -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf-intellij-themes</artifactId>
-            <version>3.2.5</version>
+            <version>3.7.2</version>
         </dependency>
 
-        <!-- FlatLaf Extras - 额外组件和工具 -->
+        <!-- FlatLaf Extras - 额外组件和工具(SVG图标/动画/工具类) -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf-extras</artifactId>
-            <version>3.2.5</version>
+            <version>3.7.2</version>
         </dependency>
 
         <!-- FlatLaf Demo - 包含IJThemesPanel等演示组件(使用本地jar) -->
