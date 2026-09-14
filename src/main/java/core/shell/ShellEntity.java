@@ -147,11 +147,54 @@ public class ShellEntity {
 
    public String getSecretKeyX() {
       // 使用 PBKDF2 派生密钥，返回32字节（256位）的十六进制字符串
+      // 注意：为保持与 generate() 时生成的 shell 文件兼容，这里仍使用固定盐派生
+      // 随机盐基础设施已就绪，但需等服务端 shell 模板支持随机盐后才可切换
       byte[] derivedKey = functions.deriveKeyPBKDF2(this.getSecretKey());
       if (derivedKey != null) {
          return functions.bytesToHex(derivedKey);
       }
       // 降级方案：如果 PBKDF2 失败，使用 SHA-256
+      return functions.SHA(this.getSecretKey().getBytes(), "SHA-256");
+   }
+
+   /**
+    * 获取或创建该 Shell 的 PBKDF2 随机盐
+    * 首次调用时生成 16 字节随机盐并存入 shellEnv，后续调用从 shellEnv 读取
+    * 当前未启用，为未来 shell 模板支持随机盐预留接口
+    * @return Base64 编码的盐值
+    */
+   public String getOrCreateSalt() {
+      if (this.id == null || this.id.isEmpty()) {
+         // 临时 shell（未入库），返回 null 表示用固定盐
+         return null;
+      }
+      String existingSalt = Db.getShellEnv(this.id, "ENV_PBKDF2_SALT");
+      if (existingSalt != null && !existingSalt.isEmpty()) {
+         return existingSalt;
+      }
+      // 生成新随机盐并存入 shellEnv
+      byte[] salt = functions.generateRandomSalt(16);
+      String saltBase64 = java.util.Base64.getEncoder().encodeToString(salt);
+      Db.setShellEnv(this.id, "ENV_PBKDF2_SALT", saltBase64);
+      return saltBase64;
+   }
+
+   /**
+    * 使用随机盐派生密钥（未来 shell 模板支持随机盐后启用）
+    * 当前 getSecretKeyX() 仍使用固定盐，此方法供未来切换使用
+    * @return 32 字节十六进制密钥
+    */
+   public String getSecretKeyXWithSalt() {
+      String saltBase64 = getOrCreateSalt();
+      if (saltBase64 == null) {
+         // 降级到固定盐
+         return getSecretKeyX();
+      }
+      byte[] salt = java.util.Base64.getDecoder().decode(saltBase64);
+      byte[] derivedKey = functions.deriveKeyPBKDF2(this.getSecretKey(), salt, 256, 10000);
+      if (derivedKey != null) {
+         return functions.bytesToHex(derivedKey);
+      }
       return functions.SHA(this.getSecretKey().getBytes(), "SHA-256");
    }
 

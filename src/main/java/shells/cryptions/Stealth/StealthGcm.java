@@ -10,6 +10,7 @@ import util.http.Http;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -94,7 +95,7 @@ public class StealthGcm implements Cryption {
          
          Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
          GCMParameterSpec parameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
-         SecretKeySpec keySpec = new SecretKeySpec(this.key.getBytes(), "AES");
+         SecretKeySpec keySpec = new SecretKeySpec(this.key.getBytes(StandardCharsets.UTF_8), "AES");
          cipher.init(Cipher.ENCRYPT_MODE, keySpec, parameterSpec);
          
          byte[] encryptedData = cipher.doFinal(paddedData);
@@ -129,7 +130,7 @@ public class StealthGcm implements Cryption {
          // 4. AES-GCM 解密
          Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
          GCMParameterSpec parameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
-         SecretKeySpec keySpec = new SecretKeySpec(this.key.getBytes(), "AES");
+         SecretKeySpec keySpec = new SecretKeySpec(this.key.getBytes(StandardCharsets.UTF_8), "AES");
          cipher.init(Cipher.DECRYPT_MODE, keySpec, parameterSpec);
          
          byte[] decryptedData = cipher.doFinal(encryptedData);
@@ -145,56 +146,46 @@ public class StealthGcm implements Cryption {
 
    /**
     * 添加随机填充数据
-    * 在真实数据前后添加随机字节,增加分析难度
+    * 结构: [4 字节 realLen 大端][realLen 字节真实数据][suffixLen 字节随机后缀]
+    * 长度标记固定在头部 offset=0，decode 时无需知道前缀长度
     */
    private byte[] addRandomPadding(byte[] data) {
-      int prefixLen = this.random.nextInt(32) + 8;  // 8-39 字节前缀
       int suffixLen = this.random.nextInt(32) + 8;  // 8-39 字节后缀
-      
-      byte[] padded = new byte[prefixLen + 4 + data.length + suffixLen];
-      
-      // 前缀: 随机数据
-      byte[] prefix = new byte[prefixLen];
-      this.random.nextBytes(prefix);
-      System.arraycopy(prefix, 0, padded, 0, prefixLen);
-      
-      // 标记: 4字节表示真实数据长度
       int realLen = data.length;
-      padded[prefixLen] = (byte)(realLen >> 24);
-      padded[prefixLen + 1] = (byte)(realLen >> 16);
-      padded[prefixLen + 2] = (byte)(realLen >> 8);
-      padded[prefixLen + 3] = (byte)realLen;
-      
+
+      byte[] padded = new byte[4 + realLen + suffixLen];
+
+      // 头部: 4 字节真实数据长度（大端）
+      padded[0] = (byte)(realLen >> 24);
+      padded[1] = (byte)(realLen >> 16);
+      padded[2] = (byte)(realLen >> 8);
+      padded[3] = (byte)realLen;
+
       // 真实数据
-      System.arraycopy(data, 0, padded, prefixLen + 4, data.length);
-      
+      System.arraycopy(data, 0, padded, 4, realLen);
+
       // 后缀: 随机数据
       byte[] suffix = new byte[suffixLen];
       this.random.nextBytes(suffix);
-      System.arraycopy(suffix, 0, padded, prefixLen + 4 + data.length, suffixLen);
-      
+      System.arraycopy(suffix, 0, padded, 4 + realLen, suffixLen);
+
       return padded;
    }
 
    /**
     * 移除随机填充数据
+    * 从固定头部 offset=0 读取 4 字节长度，从 offset=4 复制 realLen 字节
     */
    private byte[] removeRandomPadding(byte[] padded) {
-      // 读取真实数据长度
-      int prefixLen = this.random.nextInt(32) + 8;  // 注意:这里需要固定值或从头部读取
-      // 简化处理:假设我们知道填充结构
-      // 实际应该从固定位置读取长度标记
-      
-      // 重新实现:从末尾读取长度
-      int len = padded.length;
-      int realLen = ((padded[len-4] & 0xFF) << 24) | 
-                    ((padded[len-3] & 0xFF) << 16) | 
-                    ((padded[len-2] & 0xFF) << 8) | 
-                    (padded[len-1] & 0xFF);
-      
+      // 从固定位置读取真实数据长度
+      int realLen = ((padded[0] & 0xFF) << 24) |
+                    ((padded[1] & 0xFF) << 16) |
+                    ((padded[2] & 0xFF) << 8) |
+                    (padded[3] & 0xFF);
+
       byte[] data = new byte[realLen];
-      System.arraycopy(padded, len - 4 - realLen, data, 0, realLen);
-      
+      System.arraycopy(padded, 4, data, 0, realLen);
+
       return data;
    }
 
