@@ -182,59 +182,87 @@ public class UiFunction {
       }
    }
 
-   public static String getFontType(Font font) {
-      if (font.isBold()) {
-         return "Bold".toUpperCase();
-      } else if (font.isItalic()) {
-         return "Italic".toUpperCase();
-      } else {
-         return font.isPlain() ? "Plain".toUpperCase() : "Plain";
-      }
-   }
-
    public static int getFontType(String fontType) {
-      switch (fontType.toUpperCase()) {
-         case "BOLD":
-            return 1;
-         case "ITALIC":
-            return 2;
-         case "PLAIN":
-            return 0;
-         default:
-            return 0;
-      }
+      return parseFontStyle(fontType);
    }
 
+   /**
+    * 获取系统中所有可用字体家族名（去重 + 排序）
+    * 使用 family 而非 fontName，避免同一字体的多个变体重复出现
+    * @return 排序后的字体家族名数组
+    */
    public static String[] getAllFontName() {
-      ArrayList<String> arrayList = new ArrayList();
       GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
-      Font[] fonts = e.getAllFonts();
-      Font[] var3 = fonts;
-      int var4 = fonts.length;
-
-      for(int var5 = 0; var5 < var4; ++var5) {
-         Font font = var3[var5];
-         arrayList.add(font.getFontName());
-      }
-
-      return (String[])arrayList.toArray(new String[0]);
+      String[] fontNames = e.getAvailableFontFamilyNames();
+      java.util.Arrays.sort(fontNames, String.CASE_INSENSITIVE_ORDER);
+      return fontNames;
    }
 
+   /**
+    * 获取所有字体样式类型
+    * @return 字体样式名称数组
+    */
    public static String[] getAllFontType() {
       ArrayList<String> arrayList = new ArrayList();
+      arrayList.add("PLAIN");
       arrayList.add("BOLD");
       arrayList.add("ITALIC");
-      arrayList.add("PLAIN");
+      arrayList.add("BOLD|ITALIC");
       return (String[])arrayList.toArray(new String[0]);
    }
 
+   /**
+    * 获取所有可选字号（8-72）
+    * @return 字号字符串数组
+    */
    public static String[] getAllFontSize() {
       ArrayList<String> arrayList = new ArrayList();
 
-      for(int i = 8; i < 48; ++i) {
+      for(int i = 8; i <= 72; ++i) {
          arrayList.add(Integer.toString(i));
       }
 
       return (String[])arrayList.toArray(new String[0]);
+   }
+
+   /**
+    * 将字体样式字符串解析为 Font 样式常量
+    * @param styleName 样式名：PLAIN / BOLD / ITALIC / BOLD|ITALIC
+    * @return Font.PLAIN / Font.BOLD / Font.ITALIC / Font.BOLD|Font.ITALIC
+    */
+   public static int parseFontStyle(String styleName) {
+      if (styleName == null || styleName.isEmpty()) {
+         return Font.PLAIN;
+      }
+      String upper = styleName.toUpperCase();
+      boolean bold = upper.contains("BOLD");
+      boolean italic = upper.contains("ITALIC");
+      if (bold && italic) {
+         return Font.BOLD | Font.ITALIC;
+      } else if (bold) {
+         return Font.BOLD;
+      } else if (italic) {
+         return Font.ITALIC;
+      } else {
+         return Font.PLAIN;
+      }
+   }
+
+   /**
+    * 根据 Font 样式常量返回可读字符串
+    * @param style Font 样式常量
+    * @return PLAIN / BOLD / ITALIC / BOLD|ITALIC
+    */
+   public static String getFontType(Font font) {
+      int style = font.getStyle();
+      if ((style & Font.BOLD) != 0 && (style & Font.ITALIC) != 0) {
+         return "BOLD|ITALIC";
+      } else if ((style & Font.BOLD) != 0) {
+         return "BOLD";
+      } else if ((style & Font.ITALIC) != 0) {
+         return "ITALIC";
+      } else {
+         return "PLAIN";
+      }
    }
 }

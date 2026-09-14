@@ -28,6 +28,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import util.Log;
@@ -155,6 +156,9 @@ public class AppSeting extends JDialog {
       this.fontNameComboBox = new JComboBox(UiFunction.getAllFontName());
       this.fontTypeComboBox = new JComboBox(UiFunction.getAllFontType());
       this.fontSizeComboBox = new JComboBox(UiFunction.getAllFontSize());
+      // 允许用户直接输入字体名/字号进行搜索筛选（可编辑下拉框）
+      this.fontNameComboBox.setEditable(true);
+      this.fontSizeComboBox.setEditable(true);
       this.testFontLabel = new JLabel("你好\tHello");
       this.currentFontLabel = new JLabel(functions.toString(currentFont));
       this.currentFontLLabel = new JLabel("当前字体 : ");
@@ -201,7 +205,7 @@ public class AppSeting extends JDialog {
          }
       });
       if (currentFont != null) {
-         this.fontNameComboBox.setSelectedItem(currentFont.getName());
+         this.fontNameComboBox.setSelectedItem(currentFont.getFamily());
          this.fontTypeComboBox.setSelectedItem(UiFunction.getFontType(currentFont));
          this.fontSizeComboBox.setSelectedItem(Integer.toString(currentFont.getSize()));
          this.testFontLabel.setFont(currentFont);
@@ -346,7 +350,8 @@ public class AppSeting extends JDialog {
          String fontName = (String)this.fontNameComboBox.getSelectedItem();
          String fontType = (String)this.fontTypeComboBox.getSelectedItem();
          int fontSize = Integer.parseInt((String)this.fontSizeComboBox.getSelectedItem());
-         Font font = new Font(fontName, UiFunction.getFontType(fontType), fontSize);
+         // 使用 family 构造 Font，确保与 getAllFontName() 返回的 family 列表一致
+         Font font = new Font(fontName, UiFunction.parseFontStyle(fontType), fontSize);
          return font;
       } catch (Exception var5) {
          Log.error((Throwable)var5);
@@ -355,8 +360,19 @@ public class AppSeting extends JDialog {
    }
 
    private void updateFontButtonClick(ActionEvent actionEvent) {
-      ApplicationContext.setFont(this.getSelectFont());
-      GOptionPane.showMessageDialog(this, "修改成功! 重启程序生效!", "提示", 1);
+      Font selectedFont = this.getSelectFont();
+      if (selectedFont == null) {
+         GOptionPane.showMessageDialog(this, "字体参数无效!", "错误", 0);
+         return;
+      }
+      // 检查字体是否实际可用
+      if (!selectedFont.getFamily().equals(selectedFont.getName())) {
+         // 字体可能不存在，JDK 会回退到默认字体
+      }
+      ApplicationContext.setFont(selectedFont);
+      // 刷新当前对话框字体
+      SwingUtilities.updateComponentTreeUI(this);
+      GOptionPane.showMessageDialog(this, "修改成功! 字体已即时应用", "提示", 1);
    }
 
    private void resetFontButtonClick(ActionEvent actionEvent) {

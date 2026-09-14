@@ -109,19 +109,41 @@ public final class ModernUITheme {
         UIManager.put("Component.focusWidth", 1);
         UIManager.put("OptionPane.buttonMinimumWidth", 80);
 
-        // 统一边距
+        // 统一边距 (FlatLaf 的 *Component*.padding 期望 Insets，不是 EmptyBorder)
         UIManager.put("Button.margin", new EmptyBorder(6, 14, 6, 14));
         UIManager.put("ToggleButton.margin", new EmptyBorder(6, 14, 6, 14));
-        UIManager.put("ComboBox.padding", new EmptyBorder(4, 8, 4, 8));
-        UIManager.put("Spinner.padding", new EmptyBorder(4, 8, 4, 8));
-        UIManager.put("TextField.padding", new EmptyBorder(4, 8, 4, 8));
-        UIManager.put("FormattedTextField.padding", new EmptyBorder(4, 8, 4, 8));
-        UIManager.put("PasswordField.padding", new EmptyBorder(4, 8, 4, 8));
+        UIManager.put("ComboBox.padding", new java.awt.Insets(4, 8, 4, 8));
+        UIManager.put("Spinner.padding", new java.awt.Insets(4, 8, 4, 8));
+        UIManager.put("TextField.padding", new java.awt.Insets(4, 8, 4, 8));
+        UIManager.put("FormattedTextField.padding", new java.awt.Insets(4, 8, 4, 8));
+        UIManager.put("PasswordField.padding", new java.awt.Insets(4, 8, 4, 8));
 
-        // 默认字体 (优先使用 Microsoft YaHei UI)
-        String fontName = SystemInfo.isWindows ? "Microsoft YaHei UI" : "Microsoft YaHei";
+        // 默认字体：优先使用用户在设置中选择的字体，降级到系统默认中文字体
+        String userFontName = core.Db.getSetingValue("font-name");
+        String userFontType = core.Db.getSetingValue("font-type");
+        String userFontSize = core.Db.getSetingValue("font-size");
+        int fontStyle = Font.PLAIN;
+        int fontSize = 13;
+        String fontName;
+        if (userFontName != null && userFontSize != null) {
+            // 使用用户设置的字体
+            fontName = userFontName;
+            try {
+                fontSize = Integer.parseInt(userFontSize);
+            } catch (NumberFormatException ignored) {
+            }
+            if (userFontType != null) {
+                try {
+                    fontStyle = Integer.parseInt(userFontType);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        } else {
+            // 降级到系统默认中文字体
+            fontName = SystemInfo.isWindows ? "Microsoft YaHei UI" : "Microsoft YaHei";
+        }
         try {
-            Font base = new Font(fontName, Font.PLAIN, 13);
+            Font base = new Font(fontName, fontStyle, fontSize);
             UIManager.put("defaultFont", base);
             UIManager.put("Button.font", base);
             UIManager.put("Label.font", base);

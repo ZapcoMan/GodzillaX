@@ -76,8 +76,14 @@ public class ApplicationContext {
       String fontType = Db.getSetingValue("font-type");
       String fontSize = Db.getSetingValue("font-size");
       if (fontName != null && fontType != null && fontSize != null) {
-         font = new Font(fontName, Integer.parseInt(fontType), Integer.parseInt(fontSize));
-         InitGlobalFont(font);
+         try {
+            int style = Integer.parseInt(fontType);
+            int size = Integer.parseInt(fontSize);
+            font = new Font(fontName, style, size);
+            InitGlobalFont(font);
+         } catch (NumberFormatException e) {
+            Log.error(e);
+         }
       }
 
    }
@@ -464,10 +470,13 @@ public class ApplicationContext {
    }
 
    public static void setFont(Font font) {
-      Db.updateSetingKV("font-name", font.getName());
+      // 存储 family 而非 name，与 getAllFontName() 返回的 family 列表一致
+      Db.updateSetingKV("font-name", font.getFamily());
       Db.updateSetingKV("font-type", Integer.toString(font.getStyle()));
       Db.updateSetingKV("font-size", Integer.toString(font.getSize()));
       ApplicationContext.font = font;
+      // 立即应用新字体到全局 UI 组件
+      InitGlobalFont(font);
    }
 
    public static void resetFont() {
