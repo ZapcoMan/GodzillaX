@@ -10,6 +10,7 @@ import util.http.Http;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 
 /**
@@ -61,7 +62,7 @@ public class JavaAesGcm implements Cryption {
          // 初始化GCM加密
          Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
          GCMParameterSpec parameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
-         SecretKeySpec keySpec = new SecretKeySpec(this.key.getBytes(), "AES");
+         SecretKeySpec keySpec = new SecretKeySpec(this.key.getBytes(StandardCharsets.UTF_8), "AES");
          cipher.init(Cipher.ENCRYPT_MODE, keySpec, parameterSpec);
          
          // 加密数据
@@ -92,7 +93,7 @@ public class JavaAesGcm implements Cryption {
          // 初始化GCM解密
          Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
          GCMParameterSpec parameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
-         SecretKeySpec keySpec = new SecretKeySpec(this.key.getBytes(), "AES");
+         SecretKeySpec keySpec = new SecretKeySpec(this.key.getBytes(StandardCharsets.UTF_8), "AES");
          cipher.init(Cipher.DECRYPT_MODE, keySpec, parameterSpec);
          
          // 解密数据
