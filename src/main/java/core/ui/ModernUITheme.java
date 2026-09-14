@@ -46,6 +46,31 @@ public final class ModernUITheme {
         configureScrollPane();
         configureTabbedPane();
         applySavedTheme();
+        // LAF 安装完成后再做一次关键默认值兜底，避免任何 LAF 状态异常
+        // 导致 FlatLaf 内部 padding 字段为 null 而抛 NullPointerException
+        ensureRequiredDefaults();
+    }
+
+    /**
+     * LAF 安装完成后的兜底：确保 FlatLaf 依赖的关键 padding/Insets 非 null。
+     * <p>
+     * 这样即使后续存在与 flatlaf 核心库版本不匹配的旧代码触发 LAF 半初始化，
+     * UIManager.getInsets(...) 仍能返回非 null 值，避免 FlatComboBoxUI.applyStyle
+     * 因 this.padding 为 null 而抛 NullPointerException。
+     */
+    private static void ensureRequiredDefaults() {
+        if (UIManager.getInsets("ComboBox.padding") == null) {
+            UIManager.put("ComboBox.padding", new java.awt.Insets(2, 6, 2, 6));
+        }
+        String[] paddingKeys = {
+                "TextField.padding", "FormattedTextField.padding", "PasswordField.padding",
+                "TextArea.padding", "TextPane.padding", "Spinner.padding"
+        };
+        for (String key : paddingKeys) {
+            if (UIManager.getInsets(key) == null) {
+                UIManager.put(key, new java.awt.Insets(4, 8, 4, 8));
+            }
+        }
     }
 
     /**

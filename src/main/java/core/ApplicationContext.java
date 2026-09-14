@@ -1,7 +1,6 @@
 package core;
 
 import com.formdev.flatlaf.demo.intellijthemes.IJThemeInfo;
-import com.formdev.flatlaf.demo.intellijthemes.IJThemesPanel;
 import com.formdev.flatlaf.util.SystemInfo;
 import core.annotation.CryptionAnnotation;
 import core.annotation.PayloadAnnotation;
@@ -525,6 +524,7 @@ public class ApplicationContext {
 
    public static void initUi() {
       // 1. 应用现代化 UI 主题（圆角、阴影、表格、菜单、滚动条等统一配置）
+      //    ModernUITheme 内部使用 flatlaf 3.7.2 原生 API (FlatLaf.setup / IntelliJTheme.setup) 安装 LAF
       try {
          ModernUITheme.apply();
       } catch (Throwable t) {
@@ -535,15 +535,16 @@ public class ApplicationContext {
       JFrame.setDefaultLookAndFeelDecorated(true);
       JDialog.setDefaultLookAndFeelDecorated(true);
 
-      // 3. 兼容旧逻辑：如果数据库中保存了主题，覆盖默认主题
+      // 3. 确保数据库有默认主题配置（仅写入，不再用旧版 flatlaf-demo 的 IJThemesPanel.setTheme 切换 LAF）
+      //    注意：lib/flatlaf-demo-1.4.jar 中的 IJThemesPanel 为 1.4 旧版，与 flatlaf 3.7.2 核心库版本不匹配，
+      //    其 setTheme 在 LAF 切换过程中会破坏 FlatLaf 内部 padding 等字段的初始化时序，
+      //    导致后续创建 JComboBox 时 FlatComboBoxUI.applyStyle 抛 NullPointerException (this.padding is null)。
+      //    主题安装完全交由 ModernUITheme.applySavedTheme()（3.7.2 API）负责即可。
       String resourceNameString = Db.getSetingValue("ui-resourceName");
       String lafClassNameString = Db.getSetingValue("ui-lafClassName");
       if (resourceNameString == null && lafClassNameString == null) {
          Db.updateSetingKV("ui-lafClassName", "com.formdev.flatlaf.FlatIntelliJLaf");
       }
-
-      lafClassNameString = Db.getSetingValue("ui-lafClassName");
-      IJThemesPanel.setTheme(new IJThemeInfo(resourceNameString, lafClassNameString));
    }
 
    public static boolean saveUi(IJThemeInfo themeInfo) {
