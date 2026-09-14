@@ -556,6 +556,34 @@ public class ApplicationContext {
       }
    }
 
+   /**
+    * 重启当前应用：用同样的 JVM/classpath 启动新进程后退出当前进程。
+    * 用于主题切换保存后让新主题立即生效（主类 core.ui.MainActivity）。
+    */
+   public static void restart() {
+      try {
+         String os = System.getProperty("os.name", "").toLowerCase();
+         String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator
+                 + (os.contains("win") ? "java.exe" : "java");
+         String classpath = System.getProperty("java.class.path");
+         ArrayList<String> cmd = new ArrayList<String>();
+         cmd.add(javaBin);
+         cmd.add("-Dfile.encoding=UTF-8");
+         if (classpath != null && !classpath.isEmpty()) {
+            cmd.add("-classpath");
+            cmd.add(classpath);
+         }
+         cmd.add("core.ui.MainActivity");
+         ProcessBuilder pb = new ProcessBuilder(cmd);
+         pb.directory(new File(System.getProperty("user.dir")));
+         pb.redirectErrorStream(true);
+         pb.start();
+      } catch (Throwable t) {
+         Log.error((Throwable) t);
+      }
+      System.exit(0);
+   }
+
    public static void genHttpsConfig() {
       try {
          KeyPair keyPair = CertUtil.genKeyPair();

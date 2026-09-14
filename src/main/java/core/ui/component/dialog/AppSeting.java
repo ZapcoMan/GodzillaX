@@ -450,7 +450,10 @@ public class AppSeting extends JDialog {
    private void updateThemesButtonClick(ActionEvent actionEvent) {
       ThemesPanel.ThemeInfo themeInfo = this.themesPanel.getSelected();
       if (themeInfo != null && ApplicationContext.saveUi(themeInfo.lafClassName)) {
-         GOptionPane.showMessageDialog(this, "修改成功! 重启程序生效", "提示", 1);
+         // 提示后自动重启以应用新主题
+         GOptionPane.showMessageDialog(this, "主题已保存，程序将自动重启以应用新主题", "提示", 1);
+         this.dispose();
+         ApplicationContext.restart();
       } else {
          GOptionPane.showMessageDialog(this, "修改失败!", "提示", 2);
       }
